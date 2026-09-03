@@ -152,25 +152,31 @@ import { ref } from 'vue'
 
 <template>
   <h1>Blackjack</h1>
-  <h2>{{ gameMessage }}</h2>
-  <div>
-    <h2>The Dealer</h2>
-    <h3>Dealer's Cards:</h3>
-    <div>
-      <img v-for="card in dealersHand" :key="card.image" :src="`${card.hidden ? 'https://deckofcardsapi.com/static/img/back.png' : card.image}`" :alt="`${card.value} of ${card.suit}`" />
+  <h2 class="gameMessage">{{ gameMessage }}</h2>
+  <div class="players-wrapper">
+    <div class="player--wrapper">
+      <div>
+        <h2>The Dealer</h2>
+        <h3>Dealer's Cards:</h3>
+      </div>
+      <div class="card--wrapper">
+        <img class="card" v-for="card in dealersHand" :key="card.image" :src="`${card.hidden ? 'https://deckofcardsapi.com/static/img/back.png' : card.image}`" :alt="`${card.value} of ${card.suit}`" />
+      </div>
+      <h4>
+        Dealer Total: {{endGame ? calculateTotal(dealersHand) : calculateTotal(dealersHand.filter(card => !card.hidden))+" + ?" }}
+      </h4>
     </div>
-    <h4>
-      Dealer Total: {{endGame ? calculateTotal(dealersHand) : calculateTotal(dealersHand.filter(card => !card.hidden))+" + ?" }}
-    </h4>
-  </div>
 
-  <div>
-    <h2>The Player</h2>
-    <h3>Player's Cards:</h3>
-    <div>
-      <img v-for="card in playersHand" :key="card.image" :src="card.image" :alt="`${card.value} of ${card.suit}`" />
+    <div class="player--wrapper">
+      <div>
+        <h2>The Player</h2>
+        <h3>Player's Cards:</h3>
+      </div>
+      <div class="card--wrapper">
+        <img class="card" v-for="card in playersHand" :key="card.image" :src="card.image" :alt="`${card.value} of ${card.suit}`" />
+      </div>
+      <h4>Player Total: {{ calculateTotal(playersHand) }}</h4>
     </div>
-    <h4>Player Total: {{ calculateTotal(playersHand) }}</h4>
   </div>
 
   <div>
@@ -181,4 +187,69 @@ import { ref } from 'vue'
 </template>
 
 <style scoped>
+  h1 {
+    padding: 20px;
+    background-color: black;
+  }
+
+  h2 {
+    padding: 10px;
+  }
+
+  .gameMessage {
+    background-color: rgb(187, 0, 0);
+  }
+
+  .players-wrapper {
+    display: flex;
+    height: 75vh;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .player--wrapper {
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    margin: 10px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .player--wrapper h2 {
+    background-color: rgba(0, 0, 0, 0.9);
+    margin-bottom: 10px;
+    border-radius: 25px;
+    border: 5px solid rgb(187, 0, 0);
+  }
+
+  button {
+    padding: 20px 10px;
+    background-color: black;
+    color: white;
+    border: white solid 5px;
+    border-radius: 10px;
+    margin: 10px;
+    min-width: 200px;
+    cursor: pointer;
+    transition: border 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background-color: white;
+    color: black;
+    border: black solid 5px;
+  }
+
+  .card--wrapper {
+    display: flex;
+    justify-content: center;
+    height: 20vh;
+    gap: 24px;
+    padding: 10px;
+  }
 </style>
