@@ -4,6 +4,8 @@ https://deckofcardsapi.com/
   import axios from 'axios';
 import { ref } from 'vue'
   const deckId = ref('')
+  const endGame = ref(false)
+  const gameMessage = ref('Start the game by pressing the "Start Game" button.')
   const dealersHand = ref<Card[]>([])
   const playersHand = ref<Card[]>([])
 
@@ -11,6 +13,7 @@ import { ref } from 'vue'
     value: string;
     suit: string;
     image: string;
+    hidden: boolean;
   }
 
   function getDeck() {
@@ -26,6 +29,8 @@ import { ref } from 'vue'
   getDeck()
 
   function startGame() {
+    endGame.value = false
+    gameMessage.value = "Press Get Card to draw a card or Stand to end your turn."
     console.log("Starting new game...")
     // First shuffle the deck
     axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/shuffle/`)
@@ -37,6 +42,7 @@ import { ref } from 'vue'
     axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/draw/?count=4`)
       .then((response) => {
         const cards = response.data.cards
+        cards[1].hidden = true;
         dealersHand.value = [cards[0], cards[1]]
         playersHand.value = [cards[2], cards[3]]
       })
@@ -52,7 +58,8 @@ import { ref } from 'vue'
         var newCard: Card = {
           value: response.data.cards[0].value,
           suit: response.data.cards[0].suit,
-          image: response.data.cards[0].image
+          image: response.data.cards[0].image,
+          hidden: false
         }
         playersHand.value.push(newCard)
       })
@@ -62,10 +69,16 @@ import { ref } from 'vue'
   }
 
   async function stand() {
+    endGame.value = true
     console.log("Checking end status...")
     // After the player stands we check dealer logic
     var dealerTotal = calculateTotal(dealersHand.value)
     var playerTotal = calculateTotal(playersHand.value)
+    // Reveal the dealer's hidden card
+    if (dealersHand.value[1]) {
+      dealersHand.value[1].hidden = false
+    }
+
     // Draw until the dealer has 17 or more
     while (dealerTotal <= 17) {
       try {
@@ -73,7 +86,8 @@ import { ref } from 'vue'
         var newCard: Card = {
           value: response.data.cards[0].value,
           suit: response.data.cards[0].suit,
-          image: response.data.cards[0].image
+          image: response.data.cards[0].image,
+          hidden: false
         }
         dealersHand.value.push(newCard)
         console.log("Dealer drew a card.")
@@ -89,24 +103,25 @@ import { ref } from 'vue'
 
     // If the dealer busts, the player wins
     if (dealerTotal > 21) {
-      alert("Dealer busts! You win!")
+      gameMessage.value = "Dealer busts! You win!"
     }
     // If the player busts, the dealer wins
     else if (playerTotal > 21) {
-      alert("You bust! Dealer wins!")
+      gameMessage.value = "You bust! Dealer wins!"
     }
     // If the dealer is higher than the player, the dealer wins
     else if (dealerTotal > playerTotal) {
-      alert("Dealer wins!")
+      gameMessage.value = "Dealer wins!"
     }
     // If the player is higher than the dealer, the player wins
     else if (playerTotal > dealerTotal) {
-      alert("You win!")
+      gameMessage.value = "You win!"
     }
     // Otherwise it's a tie
     else {
-      alert("It's a tie!")
+      gameMessage.value = "It's a tie!"
     }
+    gameMessage.value += " Press 'Start Game' to play again."
   }
 
   function calculateTotal(hand: Card[]) : number {
@@ -137,13 +152,16 @@ import { ref } from 'vue'
 
 <template>
   <h1>Blackjack</h1>
+  <h2>{{ gameMessage }}</h2>
   <div>
     <h2>The Dealer</h2>
     <h3>Dealer's Cards:</h3>
     <div>
-      <img v-for="card in dealersHand" :key="card.image" :src="card.image" :alt="`${card.value} of ${card.suit}`" />
+      <img v-for="card in dealersHand" :key="card.image" :src="`${card.hidden ? 'https://deckofcardsapi.com/static/img/back.png' : card.image}`" :alt="`${card.value} of ${card.suit}`" />
     </div>
-    <h4>Dealer Total: {{ calculateTotal(dealersHand) }}</h4>
+    <h4>
+      Dealer Total: {{endGame ? calculateTotal(dealersHand) : calculateTotal(dealersHand.filter(card => !card.hidden))+" + ?" }}
+    </h4>
   </div>
 
   <div>
