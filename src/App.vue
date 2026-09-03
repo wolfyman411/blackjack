@@ -8,6 +8,8 @@ import { ref } from 'vue'
   const gameMessage = ref('Start the game by pressing the "Start Game" button.')
   const dealersHand = ref<Card[]>([])
   const playersHand = ref<Card[]>([])
+  const playerMessage = ref('')
+  const dealerMessage = ref('')
 
   interface Card {
     value: string;
@@ -29,6 +31,8 @@ import { ref } from 'vue'
   getDeck()
 
   function startGame() {
+    playerMessage.value = ''
+    dealerMessage.value = ''
     endGame.value = false
     gameMessage.value = "Press Get Card to draw a card or Stand to end your turn."
     console.log("Starting new game...")
@@ -101,25 +105,41 @@ import { ref } from 'vue'
 
     // Now check the hands
 
+    // If both are busted, it's a tie
+    if (dealerTotal > 21 && playerTotal > 21) {
+      playerMessage.value = "Draw"
+      dealerMessage.value = "Draw"
+      gameMessage.value = "Both bust! It's a tie!"
+    }
     // If the dealer busts, the player wins
-    if (dealerTotal > 21) {
+    else if (dealerTotal > 21) {
+      playerMessage.value = "Winner"
+      dealerMessage.value = "Loser"
       gameMessage.value = "Dealer busts! You win!"
     }
     // If the player busts, the dealer wins
     else if (playerTotal > 21) {
+      playerMessage.value = "Loser"
+      dealerMessage.value = "Winner"
       gameMessage.value = "You bust! Dealer wins!"
     }
     // If the dealer is higher than the player, the dealer wins
     else if (dealerTotal > playerTotal) {
-      gameMessage.value = "Dealer wins!"
+      playerMessage.value = "Loser"
+      dealerMessage.value = "Winner"
+      gameMessage.value = "Dealer has higher total! Dealer wins!"
     }
     // If the player is higher than the dealer, the player wins
     else if (playerTotal > dealerTotal) {
-      gameMessage.value = "You win!"
+      playerMessage.value = "Winner"
+      dealerMessage.value = "Loser"
+      gameMessage.value = "You have higher total! You win!"
     }
     // Otherwise it's a tie
     else {
-      gameMessage.value = "It's a tie!"
+      playerMessage.value = "Draw"
+      dealerMessage.value = "Draw"
+      gameMessage.value = "Both have the same total! It's a tie!"
     }
     gameMessage.value += " Press 'Start Game' to play again."
   }
@@ -155,6 +175,9 @@ import { ref } from 'vue'
   <h2 class="gameMessage">{{ gameMessage }}</h2>
   <div class="players-wrapper">
     <div class="player--wrapper">
+      <div v-if="dealerMessage" class="result-text">
+        {{ dealerMessage }}
+      </div>
       <div>
         <h2>The Dealer</h2>
         <h3>Dealer's Cards:</h3>
@@ -168,6 +191,9 @@ import { ref } from 'vue'
     </div>
 
     <div class="player--wrapper">
+      <div v-if="playerMessage" class="result-text">
+        {{ playerMessage }}
+      </div>
       <div>
         <h2>The Player</h2>
         <h3>Player's Cards:</h3>
@@ -216,6 +242,23 @@ import { ref } from 'vue'
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    font-weight: bold;
   }
 
   .player--wrapper h2 {
