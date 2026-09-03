@@ -61,6 +61,54 @@ import { ref } from 'vue'
       })
   }
 
+  async function stand() {
+    console.log("Checking end status...")
+    // After the player stands we check dealer logic
+    var dealerTotal = calculateTotal(dealersHand.value)
+    var playerTotal = calculateTotal(playersHand.value)
+    // Draw until the dealer has 17 or more
+    while (dealerTotal <= 17) {
+      try {
+        const response = await axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/draw/?count=1`)
+        var newCard: Card = {
+          value: response.data.cards[0].value,
+          suit: response.data.cards[0].suit,
+          image: response.data.cards[0].image
+        }
+        dealersHand.value.push(newCard)
+        console.log("Dealer drew a card.")
+        dealerTotal = calculateTotal(dealersHand.value)
+      }
+      catch(error) {
+        console.error(error)
+        return
+      }
+    }
+
+    // Now check the hands
+
+    // If the dealer busts, the player wins
+    if (dealerTotal > 21) {
+      alert("Dealer busts! You win!")
+    }
+    // If the player busts, the dealer wins
+    else if (playerTotal > 21) {
+      alert("You bust! Dealer wins!")
+    }
+    // If the dealer is higher than the player, the dealer wins
+    else if (dealerTotal > playerTotal) {
+      alert("Dealer wins!")
+    }
+    // If the player is higher than the dealer, the player wins
+    else if (playerTotal > dealerTotal) {
+      alert("You win!")
+    }
+    // Otherwise it's a tie
+    else {
+      alert("It's a tie!")
+    }
+  }
+
   function calculateTotal(hand: Card[]) : number {
     let total = 0;
     let aces = 0;
@@ -110,6 +158,7 @@ import { ref } from 'vue'
   <div>
     <button @click="startGame">Start Game</button>
     <button @click="getCard">Get Card</button>
+    <button @click="stand">Stand</button>
   </div>
 </template>
 
