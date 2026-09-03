@@ -96,6 +96,7 @@ import { ref } from 'vue'
         dealersHand.value.push(newCard)
         console.log("Dealer drew a card.")
         dealerTotal = calculateTotal(dealersHand.value)
+        await new Promise(resolve => setTimeout(resolve, 500)) // Wait before drawing again
       }
       catch(error) {
         console.error(error)
@@ -104,6 +105,7 @@ import { ref } from 'vue'
     }
 
     // Now check the hands
+    await new Promise(resolve => setTimeout(resolve, 500)) // Wait before drawing again
 
     // If both are busted, it's a tie
     if (dealerTotal > 21 && playerTotal > 21) {
@@ -295,4 +297,37 @@ import { ref } from 'vue'
     gap: 24px;
     padding: 10px;
   }
+
+  .card {
+    animation: cardIn 0.5s ease-in-out backwards;
+  }
+
+  .card.flip {
+    animation: cardIn 0.25s ease-in-out backwards;
+  }
+
+  .card.reveal {
+    animation: cardIn 0.25s ease-in-out backwards reverse;
+  }
+
+  @keyframes cardIn {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes cardFlip {
+    0% {
+      transform: scaleX(1);
+    }
+    100% {
+      transform: scaleX(0);
+    }
+  }
+
 </style>
