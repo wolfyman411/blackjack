@@ -78,9 +78,17 @@ import { ref } from 'vue'
     // After the player stands we check dealer logic
     var dealerTotal = calculateTotal(dealersHand.value)
     var playerTotal = calculateTotal(playersHand.value)
-    // Reveal the dealer's hidden card
+
+    // Reveal the hidden card.
     if (dealersHand.value[1]) {
+      // Grab the HTML element for the hidden card and add the flip class to it
+      const hiddenCardElement = document.querySelectorAll('.card--wrapper')[0]?.querySelectorAll('.card')[1]
+      if (hiddenCardElement) {
+        hiddenCardElement.classList.add('flip')
+      }
+      await new Promise(resolve => setTimeout(resolve, 250))
       dealersHand.value[1].hidden = false
+      await new Promise(resolve => setTimeout(resolve, 250))
     }
 
     // Draw until the dealer has 17 or more
@@ -303,11 +311,7 @@ import { ref } from 'vue'
   }
 
   .card.flip {
-    animation: cardIn 0.25s ease-in-out backwards;
-  }
-
-  .card.reveal {
-    animation: cardIn 0.25s ease-in-out backwards reverse;
+    animation: cardFlip 0.5s ease-in-out backwards;
   }
 
   @keyframes cardIn {
@@ -325,8 +329,11 @@ import { ref } from 'vue'
     0% {
       transform: scaleX(1);
     }
-    100% {
+    50% {
       transform: scaleX(0);
+    }
+    100% {
+      transform: scaleX(1);
     }
   }
 
