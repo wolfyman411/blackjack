@@ -551,6 +551,22 @@ https://deckofcardsapi.com/
   }
 
   @media (max-width:800px) {
+
+    .player--wrapper h2 {
+      background-color: rgba(0, 0, 0, 0.9);
+      margin-bottom: 10px;
+      border-radius: 25px;
+      font-size: 12px;
+      border: 2px solid rgb(187, 0, 0);
+    }
+
+    h3 {
+      font-size: 12px;
+    }
+
+    h4 {
+      font-size: 12px;
+    }
     
     .game-controls {
       display: flex;
@@ -618,14 +634,19 @@ https://deckofcardsapi.com/
 
     @media (max-width:600px) {
       .game-controls {
-        margin-top: 60px;
+        margin-top: 80px;
+      }
+
+      .players-wrapper {
+        height: 60vh;
+      }
+
+      .gameMessage {
+        font-size: 5vw;
       }
     }
 
     @media (max-width:500px) {
-      .game-controls {
-        margin-top: 50px;
-      }
 
       .bet-controls button {
         min-width:10vw;
