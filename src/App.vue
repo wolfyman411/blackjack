@@ -3,18 +3,21 @@ https://deckofcardsapi.com/
 <script setup lang="ts">
   import axios from 'axios';
   import speakerIcon from '@/assets/Speaker_Icon.svg'
+  import speakerIconMute from '@/assets/Speaker_Icon_no.svg'
   import { ref } from 'vue'
   const deckId = ref('')
-  const endGame = ref(false)
+  const endGame = ref(true)
   const gameMessage = ref('Start the game by pressing the "Start Game" button.')
   const dealersHand = ref<Card[]>([])
   const playersHand = ref<Card[]>([])
   const playerMessage = ref('')
   const dealerMessage = ref('')
   const cardFlipPlayer = ref<HTMLAudioElement | null>(null)
+  const chipsAddPlayer = ref<HTMLAudioElement | null>(null)
   const playerMoney = ref(1000)
   const playerBet = ref(0)
   const disableBet = ref(false)
+  const muteSounds = ref(false)
 
   interface Card {
     value: string;
@@ -177,6 +180,7 @@ https://deckofcardsapi.com/
       betLogic(2)
     }
     disableBet.value = false
+    playChipSound()
     gameMessage.value += " Press 'Start Game' to play again."
   }
 
@@ -222,7 +226,26 @@ https://deckofcardsapi.com/
   }
 
   function playCardFlipSound() {
+
+    if (muteSounds.value) {
+      return
+    }
+
     cardFlipPlayer.value?.play()
+  }
+
+  function playChipSound() {
+
+    if (muteSounds.value) {
+      return
+    }
+
+    if (chipsAddPlayer.value) {
+      chipsAddPlayer.value.pause()
+      chipsAddPlayer.value.currentTime = 0
+      chipsAddPlayer.value.playbackRate = Math.random() * (1.5 - 0.9) + 0.9
+      chipsAddPlayer.value.play()
+    }
   }
 
   function updateBet(amount:number) {
@@ -230,6 +253,8 @@ https://deckofcardsapi.com/
     if (playerMoney.value <= 0 && amount > 0) {
       return
     }
+
+    playChipSound()
 
     if (playerBet.value > 0 && amount < 0) {
       updateMoney(-amount)
@@ -301,17 +326,20 @@ https://deckofcardsapi.com/
       </div>
     </div>
     <div>
-      <button @click="startGame">Start Game</button>
+      <button @click="startGame" :disabled="!endGame">Start Game</button>
       <button @click="getCard" :disabled="endGame">Get Card</button>
       <button @click="stand" :disabled="endGame">Stand</button>
     </div>
     <div>
-      <img :src="speakerIcon" alt="Speaker icon" class="speaker-icon"/>
+      <img @click="muteSounds = !muteSounds" :src="muteSounds ? speakerIconMute : speakerIcon" alt="Speaker icon" class="speaker-icon"/>
     </div>
   </div>
 
   <audio ref="cardFlipPlayer">
     <source src="./assets/sounds/card_flip.mp3" type="audio/mpeg">
+  </audio>
+  <audio ref="chipsAddPlayer">
+    <source src="./assets/sounds/chips_add.mp3" type="audio/mpeg">
   </audio>
 </template>
 
@@ -450,7 +478,17 @@ https://deckofcardsapi.com/
     filter:invert();
     height: 10vh;
     cursor: pointer;
+    transition: transform 0.3s ease;
   }
+
+  .speaker-icon:hover {
+    transform: scale(1.1);
+  }
+
+  .speaker-icon:active {
+    transform: scale(1.0);
+  }
+
 
   .bet-controls button {
     padding: 10px;
