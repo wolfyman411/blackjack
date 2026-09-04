@@ -12,6 +12,8 @@ https://deckofcardsapi.com/
   const playerMessage = ref('')
   const dealerMessage = ref('')
   const cardFlipPlayer = ref<HTMLAudioElement | null>(null)
+  const playerMoney = ref(1000)
+  const playerBet = ref(0)
 
   interface Card {
     value: string;
@@ -196,6 +198,33 @@ https://deckofcardsapi.com/
   function playCardFlipSound() {
     cardFlipPlayer.value?.play()
   }
+
+  function updateBet(amount:number) {
+
+    if (playerMoney.value <= 0) {
+      return
+    }
+
+    if (playerBet.value > 0 && amount < 0) {
+      updateMoney(-amount)
+    }
+    else if (amount > 0) {
+      updateMoney(-amount)
+    }
+    playerBet.value += amount
+
+    if (playerBet.value <= 0) {
+      playerBet.value = 0
+    }
+  }
+
+  function updateMoney(amount:number) {
+    playerMoney.value += amount
+
+    if (playerMoney.value <= 0) {
+      playerMoney.value = 0
+    }
+  }
   
 </script>
 
@@ -230,18 +259,19 @@ https://deckofcardsapi.com/
       <div class="card--wrapper">
         <img class="card" v-for="card in playersHand" :key="card.image" :src="card.image" :alt="`${card.value} of ${card.suit}`" />
       </div>
-      <h4>Player Total: {{ calculateTotal(playersHand) }}</h4>
+      <div class="player-display">
+        <h4>Player Money: {{playerMoney}} | Player Bet: {{playerBet}}</h4>
+        <h4>Player Total: {{ calculateTotal(playersHand) }}</h4>
+      </div>
     </div>
   </div>
 
   <div class="game-controls">
     <div class="bet--wrapper">
-      <div class="money-display">Money: 1000</div>
       <div class="bet-controls">
-        <button>+50</button>
-        <button>-50</button>
+        <button @click="updateBet(50)">+50</button>
+        <button @click="updateBet(-50)">-50</button>
       </div>
-      <div class="money-display">Bet: 0</div>
     </div>
     <div>
       <button @click="startGame">Start Game</button>
@@ -315,6 +345,9 @@ https://deckofcardsapi.com/
   }
 
   button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 20px 10px;
     background-color: black;
     color: white;
@@ -326,6 +359,7 @@ https://deckofcardsapi.com/
     transition: border 0.3s ease, background-color 0.3s ease, color 0.3s ease, filter 0.3s ease;
     font-size: 20px;
     font-weight: bold;
+    text-align: center;
   }
 
   button:hover {
@@ -362,11 +396,20 @@ https://deckofcardsapi.com/
   }
 
   .game-controls {
-    display: flex;
-    justify-content:space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
+    text-align: center;
     padding: 10px;
     height: 10vh;
+  }
+
+  .game-controls > div:nth-child(2) {
+    justify-self: center;
+  }
+
+  .game-controls > div:last-child {
+    justify-self: end;
   }
 
   .money-display {
@@ -390,6 +433,13 @@ https://deckofcardsapi.com/
   .bet--wrapper {
     display: flex;
     align-items: center;
+    justify-self: start;
+  }
+
+  .player-display {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    justify-content: space-between;
   }
 
   @keyframes cardIn {
