@@ -590,6 +590,10 @@ https://deckofcardsapi.com/
       margin: 10px;
     }
 
+    .bet-controls button:nth-child(3) {
+      margin-right: 16px;
+    }
+
     .card--wrapper {
       justify-content: center;
       align-items: center;
@@ -612,9 +616,20 @@ https://deckofcardsapi.com/
       align-items: center;
     }
 
-    @media (max-width:500px) {
+    @media (max-width:600px) {
       .game-controls {
         margin-top: 60px;
+      }
+    }
+
+    @media (max-width:500px) {
+      .game-controls {
+        margin-top: 50px;
+      }
+
+      .bet-controls button {
+        min-width:10vw;
+        font-size: 2vw;
       }
     }
   }
