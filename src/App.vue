@@ -14,6 +14,7 @@ https://deckofcardsapi.com/
   const cardFlipPlayer = ref<HTMLAudioElement | null>(null)
   const playerMoney = ref(1000)
   const playerBet = ref(0)
+  const disableBet = ref(false)
 
   interface Card {
     value: string;
@@ -35,6 +36,7 @@ https://deckofcardsapi.com/
   getDeck()
 
   function startGame() {
+    disableBet.value = true
     playerMessage.value = ''
     dealerMessage.value = ''
     endGame.value = false
@@ -134,41 +136,65 @@ https://deckofcardsapi.com/
 
     // If both are busted, it's a tie
     if (dealerTotal > 21 && playerTotal > 21) {
-      playerMessage.value = "Draw"
+      playerMessage.value = `Draw + ${playerBet.value} Money`
       dealerMessage.value = "Draw"
       gameMessage.value = "Both bust! It's a tie!"
+      betLogic(2)
     }
     // If the dealer busts, the player wins
     else if (dealerTotal > 21) {
-      playerMessage.value = "Winner"
+      playerMessage.value = `Winner + ${2*playerBet.value} Money`
       dealerMessage.value = "Loser"
       gameMessage.value = "Dealer busts! You win!"
+      betLogic(1)
     }
     // If the player busts, the dealer wins
     else if (playerTotal > 21) {
-      playerMessage.value = "Loser"
+      playerMessage.value = `Loser - ${playerBet.value} Money`
       dealerMessage.value = "Winner"
       gameMessage.value = "You bust! Dealer wins!"
+      betLogic(0)
     }
     // If the dealer is higher than the player, the dealer wins
     else if (dealerTotal > playerTotal) {
-      playerMessage.value = "Loser"
+      playerMessage.value = `Loser - ${playerBet.value} Money`
       dealerMessage.value = "Winner"
       gameMessage.value = "Dealer has higher total! Dealer wins!"
+      betLogic(0)
     }
     // If the player is higher than the dealer, the player wins
     else if (playerTotal > dealerTotal) {
-      playerMessage.value = "Winner"
+      playerMessage.value = `Winner + ${2*playerBet.value} Money`
       dealerMessage.value = "Loser"
       gameMessage.value = "You have higher total! You win!"
+      betLogic(1)
     }
     // Otherwise it's a tie
     else {
-      playerMessage.value = "Draw"
+      playerMessage.value = `Draw + ${playerBet.value} Money`
       dealerMessage.value = "Draw"
       gameMessage.value = "Both have the same total! It's a tie!"
+      betLogic(2)
     }
+    disableBet.value = false
     gameMessage.value += " Press 'Start Game' to play again."
+  }
+
+  function betLogic(winState:number) {
+    // Dealer wins, remove bet
+    if (winState === 0) {
+      playerBet.value = 0
+    }
+    // Player wins, add double the money of the bet
+    if (winState === 1) {
+      updateMoney(playerBet.value * 2)
+      playerBet.value = 0
+    }
+    // Tie refunds money
+    if (winState === 2) {
+      updateMoney(playerBet.value)
+      playerBet.value = 0
+    }
   }
 
   function calculateTotal(hand: Card[]) : number {
@@ -201,7 +227,7 @@ https://deckofcardsapi.com/
 
   function updateBet(amount:number) {
 
-    if (playerMoney.value <= 0) {
+    if (playerMoney.value <= 0 && amount > 0) {
       return
     }
 
@@ -260,7 +286,6 @@ https://deckofcardsapi.com/
         <img class="card" v-for="card in playersHand" :key="card.image" :src="card.image" :alt="`${card.value} of ${card.suit}`" />
       </div>
       <div class="player-display">
-        <h4>Player Money: {{playerMoney}} | Player Bet: {{playerBet}}</h4>
         <h4>Player Total: {{ calculateTotal(playersHand) }}</h4>
       </div>
     </div>
@@ -268,9 +293,11 @@ https://deckofcardsapi.com/
 
   <div class="game-controls">
     <div class="bet--wrapper">
+      <h4>Player Money: {{playerMoney}} | Player Bet: {{playerBet}}</h4>
       <div class="bet-controls">
-        <button @click="updateBet(50)">+50</button>
-        <button @click="updateBet(-50)">-50</button>
+        <button @click="updateBet(50)" :disabled="disableBet">+50</button>
+        <button @click="updateBet(-50)" :disabled="disableBet">-50</button>
+        <button @click="updateMoney(1000)" :disabled="disableBet" v-if="playerMessage && playerMoney === 0 && playerBet === 0">Get a Loan</button>
       </div>
     </div>
     <div>
@@ -428,18 +455,14 @@ https://deckofcardsapi.com/
   .bet-controls button {
     padding: 10px;
     min-width: 100px;
+    margin-left: 0px;
   }
 
   .bet--wrapper {
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-self: start;
-  }
-
-  .player-display {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    justify-content: space-between;
+    flex-direction: column;
   }
 
   @keyframes cardIn {
