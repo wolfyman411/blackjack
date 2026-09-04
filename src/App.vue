@@ -2,7 +2,8 @@ https://deckofcardsapi.com/
 
 <script setup lang="ts">
   import axios from 'axios';
-import { ref } from 'vue'
+  import speakerIcon from '@/assets/Speaker_Icon.svg'
+  import { ref } from 'vue'
   const deckId = ref('')
   const endGame = ref(false)
   const gameMessage = ref('Start the game by pressing the "Start Game" button.')
@@ -10,6 +11,7 @@ import { ref } from 'vue'
   const playersHand = ref<Card[]>([])
   const playerMessage = ref('')
   const dealerMessage = ref('')
+  const cardFlipPlayer = ref<HTMLAudioElement | null>(null)
 
   interface Card {
     value: string;
@@ -49,6 +51,7 @@ import { ref } from 'vue'
         cards[1].hidden = true;
         dealersHand.value = [cards[0], cards[1]]
         playersHand.value = [cards[2], cards[3]]
+        playCardFlipSound()
       })
       .catch((error) => {
         console.error(error)
@@ -57,6 +60,9 @@ import { ref } from 'vue'
   }
 
   function getCard() {
+
+    playCardFlipSound()
+
     axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/draw/?count=1`)
       .then((response) => {
         var newCard: Card = {
@@ -66,6 +72,11 @@ import { ref } from 'vue'
           hidden: false
         }
         playersHand.value.push(newCard)
+
+        // Check if we've busted
+        if (calculateTotal(playersHand.value) > 21) {
+          stand()
+        }
       })
       .catch((error) => {
         console.error(error)
@@ -86,6 +97,7 @@ import { ref } from 'vue'
       if (hiddenCardElement) {
         hiddenCardElement.classList.add('flip')
       }
+      playCardFlipSound()
       await new Promise(resolve => setTimeout(resolve, 250))
       dealersHand.value[1].hidden = false
       await new Promise(resolve => setTimeout(resolve, 250))
@@ -104,6 +116,9 @@ import { ref } from 'vue'
         dealersHand.value.push(newCard)
         console.log("Dealer drew a card.")
         dealerTotal = calculateTotal(dealersHand.value)
+
+        playCardFlipSound()
+
         await new Promise(resolve => setTimeout(resolve, 500)) // Wait before drawing again
       }
       catch(error) {
@@ -177,6 +192,10 @@ import { ref } from 'vue'
     }
     return total;
   }
+
+  function playCardFlipSound() {
+    cardFlipPlayer.value?.play()
+  }
   
 </script>
 
@@ -215,11 +234,28 @@ import { ref } from 'vue'
     </div>
   </div>
 
-  <div>
-    <button @click="startGame">Start Game</button>
-    <button @click="getCard">Get Card</button>
-    <button @click="stand">Stand</button>
+  <div class="game-controls">
+    <div class="bet--wrapper">
+      <div class="money-display">Money: 1000</div>
+      <div class="bet-controls">
+        <button>+50</button>
+        <button>-50</button>
+      </div>
+      <div class="money-display">Bet: 0</div>
+    </div>
+    <div>
+      <button @click="startGame">Start Game</button>
+      <button @click="getCard" :disabled="endGame">Get Card</button>
+      <button @click="stand" :disabled="endGame">Stand</button>
+    </div>
+    <div>
+      <img :src="speakerIcon" alt="Speaker icon" class="speaker-icon"/>
+    </div>
   </div>
+
+  <audio ref="cardFlipPlayer">
+    <source src="./assets/sounds/card_flip.mp3" type="audio/mpeg">
+  </audio>
 </template>
 
 <style scoped>
@@ -287,7 +323,7 @@ import { ref } from 'vue'
     margin: 10px;
     min-width: 200px;
     cursor: pointer;
-    transition: border 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    transition: border 0.3s ease, background-color 0.3s ease, color 0.3s ease, filter 0.3s ease;
     font-size: 20px;
     font-weight: bold;
   }
@@ -296,6 +332,17 @@ import { ref } from 'vue'
     background-color: white;
     color: black;
     border: black solid 5px;
+  }
+
+  button:disabled {
+    filter: opacity(0.5);
+    cursor:default;
+  }
+
+  button:disabled:hover {
+    background-color: black;
+    color: white;
+    border: white solid 5px;
   }
 
   .card--wrapper {
@@ -312,6 +359,37 @@ import { ref } from 'vue'
 
   .card.flip {
     animation: cardFlip 0.5s ease-in-out backwards;
+  }
+
+  .game-controls {
+    display: flex;
+    justify-content:space-between;
+    align-items: center;
+    padding: 10px;
+    height: 10vh;
+  }
+
+  .money-display {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .speaker-icon {
+    filter:invert();
+    height: 10vh;
+    cursor: pointer;
+  }
+
+  .bet-controls button {
+    padding: 10px;
+    min-width: 100px;
+  }
+
+  .bet--wrapper {
+    display: flex;
+    align-items: center;
   }
 
   @keyframes cardIn {
