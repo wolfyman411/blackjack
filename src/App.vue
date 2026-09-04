@@ -325,7 +325,7 @@ https://deckofcardsapi.com/
         <button @click="updateMoney(1000)" :disabled="disableBet" v-if="playerMessage && playerMoney === 0 && playerBet === 0">Get a Loan</button>
       </div>
     </div>
-    <div>
+    <div class="main-controls">
       <button @click="startGame" :disabled="!endGame">Start Game</button>
       <button @click="getCard" :disabled="endGame">Get Card</button>
       <button @click="stand" :disabled="endGame">Stand</button>
@@ -523,6 +523,99 @@ https://deckofcardsapi.com/
     }
     100% {
       transform: scaleX(1);
+    }
+  }
+
+  @media (max-width:1200px) {
+    button {
+      min-width:10vw;
+      font-size: 2vw;
+    }
+
+    .game-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .game-controls > div:nth-child(2) {
+      justify-self: end;
+      margin-right: -10px;
+    }
+
+    .speaker-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      height: 5vh;
+    }
+  }
+
+  @media (max-width:800px) {
+    
+    .game-controls {
+      display: flex;
+      flex-direction: column-reverse;
+      width: 100vw;
+      margin-top: 80px;
+    }
+
+    button {
+      width: 100%;
+    }
+
+    .players-wrapper {
+      height: 65vh;
+    }
+
+    .main-controls {
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      padding-right: 10px;
+    }
+
+    .bet--wrapper {
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .bet-controls {
+      display: flex;
+      width: 100%;
+    }
+
+    .bet-controls button {
+      margin: 10px;
+    }
+
+    .card--wrapper {
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .card {
+      height: 20vw;
+      min-height: 100px;
+    }
+
+    .result-text {
+      font-size: 20px;
+    }
+
+    .gameMessage {
+      min-height: 10vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @media (max-width:500px) {
+      .game-controls {
+        margin-top: 60px;
+      }
     }
   }
 
