@@ -634,15 +634,19 @@ https://deckofcardsapi.com/
 
     @media (max-width:600px) {
       .game-controls {
-        margin-top: 80px;
+        margin-top: 100px;
       }
 
       .players-wrapper {
-        height: 60vh;
+        height: 75vh;
       }
 
       .gameMessage {
         font-size: 5vw;
+      }
+
+      .speaker-icon {
+        position: fixed;
       }
     }
 
