@@ -1,12 +1,15 @@
 https://deckofcardsapi.com/
 
 <script setup lang="ts">
-  import axios from 'axios';
   import speakerIcon from '@/assets/Speaker_Icon.svg'
   import speakerIconMute from '@/assets/Speaker_Icon_no.svg'
   import { ref } from 'vue'
+  import { drawCards, getDeck, shuffleDeck } from './scripts/apiLogic';
+import { betCalculate, calculateTotal, checkWinState, type Card } from './scripts/gameLogic';
+  
   const deckId = ref('')
   const endGame = ref(true)
+  const enableStart = ref(true)
   const gameMessage = ref('Start the game by pressing the "Start Game" button.')
   const dealersHand = ref<Card[]>([])
   const playersHand = ref<Card[]>([])
@@ -19,26 +22,14 @@ https://deckofcardsapi.com/
   const disableBet = ref(false)
   const muteSounds = ref(false)
 
-  interface Card {
-    value: string;
-    suit: string;
-    image: string;
-    hidden: boolean;
+  async function init() {
+    deckId.value = await getDeck()
   }
 
-  function getDeck() {
-    console.log("Getting new deck...")
-    axios.get("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
-      .then((response) => {
-        deckId.value = response.data.deck_id
-      })
-      .catch((error) => {
-        console.error(error)
-      })
-  }
-  getDeck()
+  init()
 
-  function startGame() {
+  async function startGame() {
+    enableStart.value = false
     disableBet.value = true
     playerMessage.value = ''
     dealerMessage.value = ''
@@ -46,51 +37,37 @@ https://deckofcardsapi.com/
     gameMessage.value = "Press Get Card to draw a card or Stand to end your turn."
     console.log("Starting new game...")
     // First shuffle the deck
-    axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/shuffle/`)
-      .catch((error) => {
-        console.error(error)
-      })
+    shuffleDeck(deckId.value)
 
     // Next draw two cards for the dealer and the player
-    axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/draw/?count=4`)
-      .then((response) => {
-        const cards = response.data.cards
-        cards[1].hidden = true;
-        dealersHand.value = [cards[0], cards[1]]
-        playersHand.value = [cards[2], cards[3]]
-        playCardFlipSound()
-      })
-      .catch((error) => {
-        console.error(error)
-      })
+    const cards = await drawCards(deckId.value, 4)
+    cards[1].hidden = true
+    dealersHand.value = [cards[0], cards[1]]
+    playersHand.value = [cards[2], cards[3]]
+    playCardFlipSound()
     console.log("Game started.")
   }
 
-  function getCard() {
+  async function getCard() {
 
     playCardFlipSound()
 
-    axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/draw/?count=1`)
-      .then((response) => {
-        var newCard: Card = {
-          value: response.data.cards[0].value,
-          suit: response.data.cards[0].suit,
-          image: response.data.cards[0].image,
-          hidden: false
-        }
-        playersHand.value.push(newCard)
+    const cards = await drawCards(deckId.value, 1)
+    var newCard: Card = {
+      value: cards[0].value,
+      suit: cards[0].suit,
+      image: cards[0].image,
+      hidden: false
+    }
+    playersHand.value.push(newCard)
 
-        // Check if we've busted
-        if (calculateTotal(playersHand.value) > 21) {
-          stand()
-        }
-      })
-      .catch((error) => {
-        console.error(error)
-      })
+    // Check if we've busted, dealer doesn't draw
+    if (calculateTotal(playersHand.value) > 21) {
+      stand(false)
+    }
   }
 
-  async function stand() {
+  async function stand(dealerDraw=true) {
     endGame.value = true
     console.log("Checking end status...")
     // After the player stands we check dealer logic
@@ -99,25 +76,21 @@ https://deckofcardsapi.com/
 
     // Reveal the hidden card.
     if (dealersHand.value[1]) {
-      // Grab the HTML element for the hidden card and add the flip class to it
-      const hiddenCardElement = document.querySelectorAll('.card--wrapper')[0]?.querySelectorAll('.card')[1]
-      if (hiddenCardElement) {
-        hiddenCardElement.classList.add('flip')
-      }
       playCardFlipSound()
+      dealersHand.value[1].flipping = true
       await new Promise(resolve => setTimeout(resolve, 250))
       dealersHand.value[1].hidden = false
       await new Promise(resolve => setTimeout(resolve, 250))
     }
 
-    // Draw until the dealer has 17 or more
-    while (dealerTotal <= 17) {
+    // Draw until the dealer has 17 or more (don't draw if false)
+    while (dealerTotal < 17 && dealerDraw) {
       try {
-        const response = await axios.get(`https://deckofcardsapi.com/api/deck/${deckId.value}/draw/?count=1`)
+        const cards = await drawCards(deckId.value,1)
         var newCard: Card = {
-          value: response.data.cards[0].value,
-          suit: response.data.cards[0].suit,
-          image: response.data.cards[0].image,
+          value: cards[0].value,
+          suit: cards[0].suit,
+          image: cards[0].image,
           hidden: false
         }
         dealersHand.value.push(newCard)
@@ -136,93 +109,20 @@ https://deckofcardsapi.com/
 
     // Now check the hands
     await new Promise(resolve => setTimeout(resolve, 500)) // Wait before drawing again
-
-    // If both are busted, it's a tie
-    if (dealerTotal > 21 && playerTotal > 21) {
-      playerMessage.value = `Draw + ${playerBet.value} Money`
-      dealerMessage.value = "Draw"
-      gameMessage.value = "Both bust! It's a tie!"
-      betLogic(2)
-    }
-    // If the dealer busts, the player wins
-    else if (dealerTotal > 21) {
-      playerMessage.value = `Winner + ${2*playerBet.value} Money`
-      dealerMessage.value = "Loser"
-      gameMessage.value = "Dealer busts! You win!"
-      betLogic(1)
-    }
-    // If the player busts, the dealer wins
-    else if (playerTotal > 21) {
-      playerMessage.value = `Loser - ${playerBet.value} Money`
-      dealerMessage.value = "Winner"
-      gameMessage.value = "You bust! Dealer wins!"
-      betLogic(0)
-    }
-    // If the dealer is higher than the player, the dealer wins
-    else if (dealerTotal > playerTotal) {
-      playerMessage.value = `Loser - ${playerBet.value} Money`
-      dealerMessage.value = "Winner"
-      gameMessage.value = "Dealer has higher total! Dealer wins!"
-      betLogic(0)
-    }
-    // If the player is higher than the dealer, the player wins
-    else if (playerTotal > dealerTotal) {
-      playerMessage.value = `Winner + ${2*playerBet.value} Money`
-      dealerMessage.value = "Loser"
-      gameMessage.value = "You have higher total! You win!"
-      betLogic(1)
-    }
-    // Otherwise it's a tie
-    else {
-      playerMessage.value = `Draw + ${playerBet.value} Money`
-      dealerMessage.value = "Draw"
-      gameMessage.value = "Both have the same total! It's a tie!"
-      betLogic(2)
-    }
+    const gameState = checkWinState(dealerTotal,playerTotal,playerBet.value)
+    playerMessage.value = gameState.playerMessage
+    dealerMessage.value = gameState.dealerMessage
+    gameMessage.value = gameState.gameMessage
+    betLogic(gameState.winState)
     disableBet.value = false
     playChipSound()
     gameMessage.value += " Press 'Start Game' to play again."
+    enableStart.value = true
   }
 
   function betLogic(winState:number) {
-    // Dealer wins, remove bet
-    if (winState === 0) {
-      playerBet.value = 0
-    }
-    // Player wins, add double the money of the bet
-    if (winState === 1) {
-      updateMoney(playerBet.value * 2)
-      playerBet.value = 0
-    }
-    // Tie refunds money
-    if (winState === 2) {
-      updateMoney(playerBet.value)
-      playerBet.value = 0
-    }
-  }
-
-  function calculateTotal(hand: Card[]) : number {
-    let total = 0;
-    let aces = 0;
-    for (const card of hand) {
-      if (card.value === 'JACK' || card.value === 'QUEEN' || card.value === 'KING') {
-        total += 10;
-      } else if (card.value === 'ACE') {
-        aces++;
-      } else {
-        total += parseInt(card.value);
-      }
-    }
-    // Adjust for aces
-    while (aces > 0) {
-      if (total + 11 <= 21) {
-        total += 11
-      } else {
-        total += 1
-      }
-      aces--;
-    }
-    return total;
+    updateMoney(betCalculate(winState,playerBet.value))
+    playerBet.value = 0
   }
 
   function playCardFlipSound() {
@@ -292,7 +192,14 @@ https://deckofcardsapi.com/
         <h3>Dealer's Cards:</h3>
       </div>
       <div class="card--wrapper">
-        <img class="card" v-for="card in dealersHand" :key="card.image" :src="`${card.hidden ? 'https://deckofcardsapi.com/static/img/back.png' : card.image}`" :alt="`${card.value} of ${card.suit}`" />
+        <img 
+          class="card" 
+          v-for="(card,index) in dealersHand" 
+          :class="{ flip: card.flipping }"
+          :key="card.image" 
+          :src="`${card.hidden ? 'https://deckofcardsapi.com/static/img/back.png' : card.image}`" 
+          :alt="`${card.value} of ${card.suit}`" 
+        />
       </div>
       <h4>
         Dealer Total: {{endGame ? calculateTotal(dealersHand) : calculateTotal(dealersHand.filter(card => !card.hidden))+" + ?" }}
@@ -320,15 +227,15 @@ https://deckofcardsapi.com/
     <div class="bet--wrapper">
       <h4>Player Money: {{playerMoney}} | Player Bet: {{playerBet}}</h4>
       <div class="bet-controls">
-        <button @click="updateBet(50)" :disabled="disableBet">+50</button>
-        <button @click="updateBet(-50)" :disabled="disableBet">-50</button>
+        <button @click="updateBet(Math.min(50,playerMoney))" :disabled="disableBet">+{{Math.min(50,playerMoney)}}</button>
+        <button @click="updateBet(Math.max(-50,-playerBet))" :disabled="disableBet">-{{Math.max(-50,-playerBet)}}</button>
         <button @click="updateMoney(1000)" :disabled="disableBet" v-if="playerMessage && playerMoney === 0 && playerBet === 0">Get a Loan</button>
       </div>
     </div>
     <div class="main-controls">
-      <button @click="startGame" :disabled="!endGame">Start Game</button>
+      <button @click="startGame" :disabled="!enableStart">Start Game</button>
       <button @click="getCard" :disabled="endGame">Get Card</button>
-      <button @click="stand" :disabled="endGame">Stand</button>
+      <button @click="stand()" :disabled="endGame">Stand</button>
     </div>
     <div>
       <img @click="muteSounds = !muteSounds" :src="muteSounds ? speakerIconMute : speakerIcon" alt="Speaker icon" class="speaker-icon"/>
