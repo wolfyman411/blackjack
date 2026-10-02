@@ -8,7 +8,7 @@ https://deckofcardsapi.com/
 
   import { ref } from 'vue'
   import { drawCards, getDeck, shuffleDeck } from './scripts/apiLogic';
-  import { betCalculate, calculateTotal, checkWinState, dealerShouldDraw} from './scripts/gameLogic';
+  import { betCalculate, calculateTotal, canPlaceBet, checkWinState, dealerShouldDraw} from './scripts/gameLogic';
   import DealerHand from './components/DealerHand.vue';
   import PlayerHand from './components/PlayerHand.vue';
   import GameControls from './components/GameControls.vue';
@@ -158,31 +158,18 @@ https://deckofcardsapi.com/
 
   function updateBet(amount:number) {
 
-    if (playerMoney.value <= 0 && amount > 0) {
+    if (!canPlaceBet(playerMoney.value,playerBet.value,amount)) {
       return
     }
 
     playChipSound()
 
-    if (playerBet.value > 0 && amount < 0) {
-      updateMoney(-amount)
-    }
-    else if (amount > 0) {
-      updateMoney(-amount)
-    }
+    updateMoney(-amount)
     playerBet.value += amount
-
-    if (playerBet.value <= 0) {
-      playerBet.value = 0
-    }
   }
 
   function updateMoney(amount:number) {
     playerMoney.value += amount
-
-    if (playerMoney.value <= 0) {
-      playerMoney.value = 0
-    }
   }
   
 </script>
