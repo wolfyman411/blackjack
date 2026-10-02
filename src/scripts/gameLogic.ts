@@ -1,10 +1,4 @@
-export interface Card {
-    value: string;
-    suit: string;
-    image: string;
-    hidden: boolean;
-    flipping?: boolean; //Special case for dealer's second card
-}
+import type { Card } from "./types";
 
 export function calculateTotal(hand: Card[]) : number {
     let total = 0;
@@ -91,4 +85,9 @@ export function betCalculate(winState:number,bet:number) {
     if (winState === 1) return bet * 2
     else if (winState === 2) return bet
     return 0
+}
+
+export function dealerShouldDraw(total:number) {
+    if (total < 17) return true
+    else false
 }
