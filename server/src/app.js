@@ -1,7 +1,12 @@
-import http from 'http';
+import express from 'express';
+import {gamesRouter} from './routes/games.js'
 
-export const app = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello, Node.js World!\n');
-});
+export const app = express()
+
+app.use(express.json())
+
+app.use('/api',gamesRouter)
+
+app.listen(3000, () => {
+  console.log("Listening on http://127.0.0.1:3000")
+})

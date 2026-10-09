@@ -1,9 +1,4 @@
-export interface Card {
-    value: string;
-    suit: string;
-    image: string;
-    hidden: boolean;
-}
+import { Card } from "./deckClient";
 
 export function calculateTotal(hand: Card[]) : number {
     let total = 0;
