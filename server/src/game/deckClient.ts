@@ -67,6 +67,20 @@ export function drawCard(id:string, amount:number) {
     if (!deck) {
         return null
     }
+
+    var drawnCards:Card[] = []
+
+    while (amount > 0) {
+        if (deck.drawPile.length <= 0) {
+            break
+        }
+        drawnCards.push(deck.drawPile[0])
+        deck.discardPile.push(deck.drawPile[0])
+        deck.drawPile.shift()
+        amount -= 1
+    }
+
+    return drawnCards
 }
 
 // Get all cards from the current draw pile
