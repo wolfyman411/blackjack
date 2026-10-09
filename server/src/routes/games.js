@@ -28,7 +28,7 @@ gamesRouter.post('/games', function(req, res) {
     newGame.playerHand = [drawnCards[0],drawnCards[1]]
     newGame.dealerHand = [drawnCards[2],drawnCards[3]]
 
-    res.status(201).send(`Game created: ${newGame.id}\n${printGameState(newGame.id)}`)
+    res.status(201).send(`Game created: ${newGame.id}\n${printGameState(newGame.id,false)}`)
 })
 
 // Draws one card for the player, ends on a bust
@@ -36,6 +36,10 @@ gamesRouter.post('/games/:id/hit', function(req, res) {
     // Get the gamestate
     const id = req.params.id
     const currentGame = activeGames.get(id)
+
+    if (!currentGame) {
+        return res.status(404).send('No game with that id exists');
+    }
 
     // If the game has already ended, alert
     if (currentGame.gameResult?.gameMessage) {
@@ -60,6 +64,10 @@ gamesRouter.post('/games/:id/stand', function(req, res) {
     // Get the gamestate
     const id = req.params.id
     const currentGame = activeGames.get(id)
+
+    if (!currentGame) {
+        return res.status(404).send('No game with that id exists');
+    }
 
     // If the game has already ended, alert
     if (currentGame.gameResult?.gameMessage) {
@@ -86,11 +94,19 @@ gamesRouter.post('/games/:id/stand', function(req, res) {
 // Returns the current state of the game
 gamesRouter.get('/games/:id', function(req, res) {
     const id = req.params.id
-    var gameState = printGameState(id)
-    if (!printGameState(id)) {
+    const currentGame = activeGames.get(id)
+
+    if (!currentGame) {
         return res.status(404).send('No game with that id exists');
     }
-    res.send(gameState)
+
+    // Only show dealer hand if the game has ended
+    var showHand = false
+    if (currentGame.gameResult?.gameMessage) {
+        showHand = true
+    }
+
+    res.send(printGameState(id,showHand))
 })
 
 // TEST METHODS

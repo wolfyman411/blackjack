@@ -11,7 +11,7 @@ export interface gameState {
     gameResult:{}
 }
 
-export function printGameState(id:string) {
+export function printGameState(id:string,showDealer:boolean) {
 
     // Get gamestate
     const currentState = activeGames.get(id)
@@ -24,7 +24,13 @@ export function printGameState(id:string) {
     // Go through cards
     returnString += "Player's Hand: " + printHand(currentState.playerHand)
     returnString += "\n"
-    returnString += "Dealer's Hand: " + printHand(currentState.dealerHand)
+    // If we don't want to show the dealer's full hand, instead only show the first
+    if (showDealer) {
+        returnString += "Dealer's Hand: " + printHand(currentState.dealerHand)
+    }
+    else {
+        returnString += "Dealer's Hand: " + printCardName(currentState.dealerHand[0]) + ", ???, " + calculateTotal(currentState.dealerHand.slice(0,1)) + " + ?"
+    }
 
     return returnString
 }
