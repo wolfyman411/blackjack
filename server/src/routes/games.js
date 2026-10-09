@@ -1,7 +1,6 @@
 import express from 'express';
 import { newDeck, getCards, drawCard } from '../game/deckClient.ts';
 import { activeGames } from '../store/memoryStore.ts';
-import { printGameState } from '../game/view.ts';
 import { calculateTotal, checkWinState, dealerShouldDraw } from '../game/engine.ts';
 const app = express()
 
@@ -28,7 +27,22 @@ gamesRouter.post('/games', function(req, res) {
     newGame.playerHand = [drawnCards[0],drawnCards[1]]
     newGame.dealerHand = [drawnCards[2],drawnCards[3]]
 
-    res.status(201).send(`Game created: ${newGame.id}\n${printGameState(newGame.id,false)}`)
+    var obfuscatedGame = {
+        ...newGame,
+        dealerHand: [...newGame.dealerHand]
+    }
+    // Obfuscate second dealer card
+    var obfuscatedCard = {
+        value:"???",
+        suit:"???",
+        image:"images/cards/back"
+    }
+    obfuscatedGame.dealerHand[1] = obfuscatedCard
+
+    res.status(201).json({
+        message: `Game created: ${newGame.id}`,
+        game: obfuscatedGame
+    })
 })
 
 // Draws one card for the player, ends on a bust
@@ -53,10 +67,16 @@ gamesRouter.post('/games/:id/hit', function(req, res) {
     // Check if bust
     var playerTotal = calculateTotal(currentGame.playerHand)
     if (playerTotal > 21) {
-        // Get the game result
         currentGame.gameResult = checkWinState(calculateTotal(currentGame.dealerHand),playerTotal,1)
-        res.send(currentGame.gameResult.gameMessage)
+        return res.status(200).json({
+            message: `${currentGame.gameResult.gameMessage}`,
+            result: drawnCards[0]
+        })
     }
+    res.status(200).json({
+        message: `Card drawn`,
+        result: drawnCards[0]
+    })
 })
 
 // Reveals dealer's card, plays for the dealer, then handles endstate
@@ -86,7 +106,10 @@ gamesRouter.post('/games/:id/stand', function(req, res) {
     
     // Get the game result
     currentGame.gameResult = checkWinState(dealerTotal,playerTotal,1)
-    res.send(currentGame.gameResult.gameMessage)
+    res.status(200).json({
+        message: `${currentGame.gameResult.gameMessage}`,
+        result: currentGame.gameResult
+    })
 })
 
 
@@ -100,23 +123,22 @@ gamesRouter.get('/games/:id', function(req, res) {
         return res.status(404).send('No game with that id exists');
     }
 
-    // Only show dealer hand if the game has ended
-    var showHand = false
-    if (currentGame.gameResult?.gameMessage) {
-        showHand = true
+    var obfuscatedGame = {
+        ...currentGame,
+        dealerHand: [...currentGame.dealerHand]
     }
 
-    res.send(printGameState(id,showHand))
-})
+    // If the game hasn't ended, we still hide the cards
+    if (!currentGame.gameResult?.gameMessage) {
+        var obfuscatedCard = {
+            value:"???",
+            suit:"???",
+            image:"images/cards/back"
+        }
+        obfuscatedGame.dealerHand[1] = obfuscatedCard
+    }
 
-// TEST METHODS
-// Creates a deck, shuffles, and returns the id
-gamesRouter.post('/decks', function(req, res) {
-    res.send(newDeck())
-})
-
-// Returns all the cards currently in the draw pile of a deck
-gamesRouter.get('/decks/:id', function(req, res) {
-    const id = req.params.id
-    res.send(getCards(id))
+    res.status(200).json({
+        game: obfuscatedGame
+    })
 })
