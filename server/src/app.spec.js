@@ -1,7 +1,70 @@
-import { test } from 'node:test'
+import { test, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import request from 'supertest'
-import { app } from './app.js'
+import { createApp } from './app.js';
+import { activeGames } from './store/memoryStore.ts';
+
+const fixedDeck = [
+    {
+        value:"5",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"9",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"QUEEN",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"ACE",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"4",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"10",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"6",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"JACK",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"ACE",
+        suit:"HEARTS",
+        image:"NONE"
+    },
+    {
+        value:"8",
+        suit:"HEARTS",
+        image:"NONE"
+    }
+];
+
+let i = 0;
+const fakeDraw = (_deckId, amount) => fixedDeck.slice(i, (i += amount));
+const app = createApp(fakeDraw); 
+
+beforeEach(() => {
+    i = 0
+    activeGames.clear();
+})
 
 test('POST games creates a game with 2 player cards and 2 dealer cards, the last dealer card is obfuscated', async () => {
   const response = await request(app).post('/api/games')

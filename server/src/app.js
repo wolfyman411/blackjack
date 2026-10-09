@@ -1,12 +1,12 @@
 import express from 'express';
+import { drawCard } from './game/deckClient.ts';
 import {gamesRouter} from './routes/games.js'
 
-export const app = express()
+export function createApp(drawCardFn = drawCard) {
+  const app = express();
+  app.use(express.json());
+  app.use('/api', gamesRouter(drawCardFn));
+  return app;
+}
 
-app.use(express.json())
-
-app.use('/api',gamesRouter)
-
-app.listen(3000, () => {
-  console.log("Listening on http://127.0.0.1:3000")
-})
+export const app = createApp();
