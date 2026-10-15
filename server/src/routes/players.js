@@ -25,12 +25,19 @@ export function playerRouter() {
     router.post('/:id/reload', function(req, res) {
         const id = req.params.id
         const currentPlayer = activePlayers.get(id)
+        const forced_bankroll = req.body?.bankroll;
         
         if (!currentPlayer) {
             throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
         }
-        else if (currentPlayer.bankroll !== 0) {
-            throw ApiError('INVALID_ACTION', 409, `Player bankroll does not equal 0, is currently: ${currentPlayer.bankroll}`);
+
+        var bankroll = currentPlayer.bankroll
+        if (forced_bankroll !== undefined) {
+            bankroll = forced_bankroll
+        }
+
+        if (bankroll !== 0) {
+            throw ApiError('INVALID_ACTION', 409, `Player bankroll does not equal 0, is currently: ${bankroll}`);
         }
 
         currentPlayer.bankroll = 1000

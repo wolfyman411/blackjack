@@ -140,7 +140,7 @@ export function gamesRouter(drawCard) {
                 throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
             }
 
-            currentPlayer.bet += betCalculate(currentGame.gameResult.winState)
+            currentPlayer.bankroll += betCalculate(currentGame.gameResult.winState,currentGame.bet)
         }
 
         res.status(200).json({
