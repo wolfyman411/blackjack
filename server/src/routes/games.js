@@ -2,6 +2,7 @@ import express from 'express';
 import { newDeck } from '../game/deckClient.ts';
 import { activeGames, activePlayers } from '../store/memoryStore.ts';
 import { betCalculate, calculateTotal, checkWinState, dealerShouldDraw } from '../game/engine.ts';
+import { ApiError } from '../errorHandling.ts';
 
 export function gamesRouter(drawCard) {
     const router = express.Router();
@@ -28,12 +29,12 @@ export function gamesRouter(drawCard) {
         if (playerId && bet) {
             const currentPlayer = activePlayers.get(playerId) 
             if (!currentPlayer) {
-                return res.status(404).send('No player with that id exists');
+                throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
             }
 
             // If bet is greater than our payroll it is invalid or if bet is negative it is invalid
             if (bet > currentPlayer.bankroll || bet < 0) {
-                return res.status(400).send('Invalid bet.');
+                throw ApiError('INVALID_BET', 400, 'Invalid bet.');
             }
 
             // If we pass both conditions remove the bet from the player and add it to the game
@@ -74,12 +75,12 @@ export function gamesRouter(drawCard) {
         const currentGame = activeGames.get(id)
 
         if (!currentGame) {
-            return res.status(404).send('No game with that id exists');
+            throw ApiError('INVALID_GAME', 404, 'No game with that id exists.');
         }
 
         // If the game has already ended, alert
         if (currentGame.gameResult?.gameMessage) {
-            return res.status(409).send('Game already ended');
+            throw ApiError('GAME_ENDED', 409, 'Game already ended.');
         }
 
         // Draw one card
@@ -109,12 +110,12 @@ export function gamesRouter(drawCard) {
         const currentGame = activeGames.get(id)
 
         if (!currentGame) {
-            return res.status(404).send('No game with that id exists');
+            throw ApiError('INVALID_GAME', 404, 'No game with that id exists.');
         }
 
         // If the game has already ended, alert
         if (currentGame.gameResult?.gameMessage) {
-            return res.status(409).send('Game already ended');
+            throw ApiError('GAME_ENDED', 409, 'Game already ended.');
         }
 
         // Draw for the dealer
@@ -136,7 +137,7 @@ export function gamesRouter(drawCard) {
             
             // Issue grabbing the player
             if (!currentPlayer) {
-                return res.status(404).send('No player with that id exists');
+                throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
             }
 
             currentPlayer.bet += betCalculate(currentGame.gameResult.winState)
@@ -156,7 +157,7 @@ export function gamesRouter(drawCard) {
         const currentGame = activeGames.get(id)
 
         if (!currentGame) {
-            return res.status(404).send('No game with that id exists');
+            throw ApiError('INVALID_GAME', 404, 'No game with that id exists.');
         }
 
         var obfuscatedGame = {

@@ -1,5 +1,6 @@
 import express from 'express';
 import { activePlayers } from '../store/memoryStore.ts';
+import { ApiError } from '../errorHandling.ts';
 
 export function playerRouter() {
     const router = express.Router();
@@ -26,10 +27,10 @@ export function playerRouter() {
         const currentPlayer = activePlayers.get(id)
         
         if (!currentPlayer) {
-            return res.status(404).send('No player with that id exists');
+            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
         }
         else if (currentPlayer.bankroll !== 0) {
-            return res.status(409).send(`Player bankroll does not equal 0, is currently: ${currentPlayer.bankroll}`);
+            throw ApiError('INVALID_ACTION', 409, `Player bankroll does not equal 0, is currently: ${currentPlayer.bankroll}`);
         }
 
         currentPlayer.bankroll = 1000
@@ -46,7 +47,7 @@ export function playerRouter() {
         const currentPlayer = activePlayers.get(id)
         
         if (!currentPlayer) {
-            return res.status(404).send('No player with that id exists');
+            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
         }
 
         res.status(200).json({
