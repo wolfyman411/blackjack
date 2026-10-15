@@ -1,12 +1,12 @@
-import { activeGames } from "../store/memoryStore.ts";
 import type { Card } from "./deckClient.ts";
-import { calculateTotal } from "./engine.ts";
 
-export interface gameState {
+export interface Gamestate {
     id:string,
     deck_id:string,
     playerHand:Card[],
     dealerHand:Card[],
     playerTurn:boolean,
-    gameResult:{}
+    gameResult:{},
+    playerId:string|null,
+    bet:number|null,
 }
