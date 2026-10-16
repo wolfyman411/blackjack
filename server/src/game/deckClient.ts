@@ -28,7 +28,7 @@ export function newDeck() {
             let newCard:Card = {
                 value:value,
                 suit:suit,
-                image:`images/cards/${value}_${suit}`
+                image:`../static/${value}_${suit}`
             }
             newDeck.drawPile.push(newCard)
         }
