@@ -1,4 +1,5 @@
 export interface Player {
     id:string,
-    bankroll:number
+    bankroll:number,
+    created_at:string
 }

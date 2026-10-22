@@ -3,13 +3,14 @@ import { newDeck } from '../game/deckClient.ts';
 import { activeGames, activePlayers } from '../store/memoryStore.ts';
 import { betCalculate, calculateTotal, checkWinState, dealerShouldDraw } from '../game/engine.ts';
 import { ApiError } from '../errorHandling.ts';
+import { getPlayerId } from '../db/playerRepo.ts';
 
 export function gamesRouter(drawCard) {
     const router = express.Router();
 
     // POST METHODS
     // Create a new deck, draw 2 cards for both player and dealer
-    router.post('/', function(req, res) {
+    router.post('/', async function(req, res) {
         const playerId = req.body?.playerId;
         const bet = req.body?.bet;
 
@@ -26,22 +27,20 @@ export function gamesRouter(drawCard) {
         }
 
         // If we have a don't have a bet or player ignore this
-        if (playerId && bet) {
-            const currentPlayer = activePlayers.get(playerId) 
-            if (!currentPlayer) {
-                throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
-            }
-
-            // If bet is greater than our payroll it is invalid or if bet is negative it is invalid
-            if (bet > currentPlayer.bankroll || bet < 0) {
-                throw ApiError('INVALID_BET', 400, 'Invalid bet.');
-            }
-
-            // If we pass both conditions remove the bet from the player and add it to the game
-            currentPlayer.bankroll -= bet
-            newGame.playerId = currentPlayer.id
-            newGame.bet = bet
+        const currentPlayer = await getPlayerId(playerId)
+        if (!currentPlayer) {
+            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
         }
+
+        // If bet is greater than our payroll it is invalid or if bet is negative it is invalid
+        if (bet > currentPlayer.bankroll || bet < 0) {
+            throw ApiError('INVALID_BET', 400, 'Invalid bet.');
+        }
+
+        // If we pass both conditions remove the bet from the player and add it to the game
+        currentPlayer.bankroll -= bet
+        newGame.playerId = currentPlayer.id
+        newGame.bet = bet
 
         activeGames.set(newGame.id,newGame)
 
