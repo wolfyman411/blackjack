@@ -17,3 +17,14 @@ export async function getPlayerId(id:string) {
 
     return result.rows[0]
 }
+
+export async function updateBankRoll(id:string, newBankroll:number) {
+    const text = 'UPDATE players SET bankroll = $1 WHERE id = $2'
+    const result = await db.query(text,[newBankroll,id])
+
+    if (result.rows.length === 0) {
+        return null
+    }
+
+    return result.rows[0]
+}

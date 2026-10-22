@@ -3,7 +3,8 @@ import { newDeck } from '../game/deckClient.ts';
 import { activeGames, activePlayers } from '../store/memoryStore.ts';
 import { betCalculate, calculateTotal, checkWinState, dealerShouldDraw } from '../game/engine.ts';
 import { ApiError } from '../errorHandling.ts';
-import { getPlayerId } from '../db/playerRepo.ts';
+import { getPlayerId, updateBankRoll } from '../db/playerRepo.ts';
+import { createGame } from '../db/gamesRepo.ts';
 
 export function gamesRouter(drawCard) {
     const router = express.Router();
@@ -68,7 +69,7 @@ export function gamesRouter(drawCard) {
     })
 
     // Draws one card for the player, ends on a bust
-    router.post('/:id/hit', function(req, res) {
+    router.post('/:id/hit', async function(req, res) {
         // Get the gamestate
         const id = req.params.id
         const currentGame = activeGames.get(id)
@@ -90,6 +91,12 @@ export function gamesRouter(drawCard) {
         var playerTotal = calculateTotal(currentGame.playerHand)
         if (playerTotal > 21) {
             currentGame.gameResult = checkWinState(calculateTotal(currentGame.dealerHand),playerTotal,1)
+            const currentPlayer = await getPlayerId(currentGame.playerId)
+
+            var dealerTotal = calculateTotal(currentGame.playerHand)
+
+            await createGame(currentPlayer.id,currentGame.bet,'dealer',0,currentPlayer.bankroll-currentGame.bet,playerTotal,dealerTotal)
+            await updateBankRoll(currentPlayer.id,currentPlayer.bankroll-currentGame.bet)
 
             return res.status(200).json({
                 message: `${currentGame.gameResult.gameMessage}`,
@@ -103,7 +110,7 @@ export function gamesRouter(drawCard) {
     })
 
     // Reveals dealer's card, plays for the dealer, then handles endstate
-    router.post('/:id/stand', function(req, res) {
+    router.post('/:id/stand', async function(req, res) {
         // Get the gamestate
         const id = req.params.id
         const currentGame = activeGames.get(id)
@@ -132,14 +139,28 @@ export function gamesRouter(drawCard) {
 
         // Add bet to player if applicable
         if (currentGame.playerId && currentGame.bet) {
-            const currentPlayer = activePlayers.get(currentGame.playerId)
+            const currentPlayer = await getPlayerId(currentGame.playerId)
             
             // Issue grabbing the player
             if (!currentPlayer) {
                 throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
             }
 
-            currentPlayer.bankroll += betCalculate(currentGame.gameResult.winState,currentGame.bet)
+            var gameWinner = 'push'
+            if (currentGame.gameResult.winState === 1) {
+                gameWinner = 'player'
+            }
+            else if (currentGame.gameResult.winState === 2) {
+                gameWinner = 'dealer'
+            }
+
+            var winnings = betCalculate(currentGame.gameResult.winState,currentGame.bet)
+            var bankroll = currentPlayer.bankroll + winnings - currentGame.bet
+            
+            console.log(dealerTotal)
+
+            await createGame(currentPlayer.id,currentGame.bet,gameWinner,winnings,bankroll,playerTotal,dealerTotal)
+            await updateBankRoll(currentPlayer.id,bankroll)
         }
 
         res.status(200).json({

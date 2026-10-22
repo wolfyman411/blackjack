@@ -1,7 +1,7 @@
 import express from 'express';
 import { activePlayers } from '../store/memoryStore.ts';
 import { ApiError } from '../errorHandling.ts';
-import { createPlayer, getPlayerId } from '../db/playerRepo.ts';
+import { createPlayer, getPlayerId, updateBankRoll } from '../db/playerRepo.ts';
 
 export function playerRouter() {
     const router = express.Router();
@@ -37,7 +37,7 @@ export function playerRouter() {
             throw ApiError('INVALID_ACTION', 409, `Player bankroll does not equal 0, is currently: ${bankroll}`);
         }
 
-        currentPlayer.bankroll = 1000
+        updateBankRoll(id,1000)
         
         res.status(201).json({
             message: `Bankroll refreshed`
