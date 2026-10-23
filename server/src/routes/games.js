@@ -137,34 +137,22 @@ export function gamesRouter(drawCard) {
         // Get the game result
         currentGame.gameResult = checkWinState(dealerTotal,playerTotal,1)
 
-        // Add bet to player if applicable
-        if (currentGame.playerId && currentGame.bet) {
-            const currentPlayer = await getPlayerId(currentGame.playerId)
-            
-            // Issue grabbing the player
-            if (!currentPlayer) {
-                throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
-            }
-
-            var gameWinner = 'push'
-            if (currentGame.gameResult.winState === 1) {
-                gameWinner = 'player'
-            }
-            else if (currentGame.gameResult.winState === 2) {
-                gameWinner = 'dealer'
-            }
-
-            var winnings = betCalculate(currentGame.gameResult.winState,currentGame.bet)
-            var bankroll = currentPlayer.bankroll + winnings - currentGame.bet
-            
-            console.log(dealerTotal)
-
-            await createGame(currentPlayer.id,currentGame.bet,gameWinner,winnings,bankroll,playerTotal,dealerTotal)
-            await updateBankRoll(currentPlayer.id,bankroll)
+        const currentPlayer = await getPlayerId(currentGame.playerId)
+        
+        // Issue grabbing the player
+        if (!currentPlayer) {
+            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
         }
+
+        var winnings = betCalculate(currentGame.gameResult.winState,currentGame.bet)
+        var bankroll = currentPlayer.bankroll + winnings - currentGame.bet
+
+        const dbGame = await createGame(currentPlayer.id,currentGame.bet,currentGame.gameResult.winState,winnings,bankroll,playerTotal,dealerTotal)
+        await updateBankRoll(currentPlayer.id,bankroll)
 
         res.status(200).json({
             message: `${currentGame.gameResult.gameMessage}`,
+            gameId: `${dbGame.id}`,
             result: currentGame.gameResult
         })
     })

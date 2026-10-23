@@ -31,7 +31,7 @@ export function checkWinState(dealerTotal:number, playerTotal:number, bet:number
         "playerMessage":`Draw + ${bet} Money`,
         "dealerMessage":"Draw",
         "gameMessage":"Both bust! It's a tie!",
-        "winState":2
+        "winState":"push"
       }
     }
     // If the dealer busts, the player wins
@@ -40,7 +40,7 @@ export function checkWinState(dealerTotal:number, playerTotal:number, bet:number
         "playerMessage":`Winner + ${2*bet} Money`,
         "dealerMessage":"Loser",
         "gameMessage":"Dealer busts! You win!",
-        "winState":1
+        "winState":"player"
       }
     }
     // If the player busts, the dealer wins
@@ -49,7 +49,7 @@ export function checkWinState(dealerTotal:number, playerTotal:number, bet:number
         "playerMessage":`Loser - ${bet} Money`,
         "dealerMessage":"Winner",
         "gameMessage":"You bust! Dealer wins!",
-        "winState":0
+        "winState":"dealer"
       }
     }
     // If the dealer is higher than the player, the dealer wins
@@ -58,7 +58,7 @@ export function checkWinState(dealerTotal:number, playerTotal:number, bet:number
         "playerMessage":`Loser - ${bet} Money`,
         "dealerMessage":"Winner",
         "gameMessage":"Dealer has higher total! Dealer wins!",
-        "winState":0
+        "winState":"dealer"
       }
     }
     // If the player is higher than the dealer, the player wins
@@ -67,7 +67,7 @@ export function checkWinState(dealerTotal:number, playerTotal:number, bet:number
         "playerMessage":`Winner + ${2*bet} Money`,
         "dealerMessage":"Loser",
         "gameMessage":"You have higher total! You win!",
-        "winState":1
+        "winState":"player"
       }
     }
     // Otherwise it's a tie
@@ -76,14 +76,14 @@ export function checkWinState(dealerTotal:number, playerTotal:number, bet:number
         "playerMessage":`Draw + ${bet} Money`,
         "dealerMessage":"Draw",
         "gameMessage":"Both have the same total! It's a tie!",
-        "winState":2
+        "winState":"push"
       }
     }
 }
 
-export function betCalculate(winState:number,bet:number) {
-    if (winState === 1) return bet * 2
-    else if (winState === 2) return bet
+export function betCalculate(winState:string,bet:number) {
+    if (winState === "player") return bet * 2
+    else if (winState === "push") return bet
     return 0
 }
 

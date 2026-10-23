@@ -28,3 +28,7 @@ export async function updateBankRoll(id:string, newBankroll:number) {
 
     return result.rows[0]
 }
+
+export async function clearPlayers() {
+    await db.query("TRUNCATE TABLE players CASCADE;")
+}
