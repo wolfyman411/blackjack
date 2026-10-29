@@ -5,7 +5,7 @@
 
 
   import { ref } from 'vue'
-  import { getDeck, getPlayer, hit, setupGame, shuffleDeck, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
+  import { getPlayer, hit, setupGame, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
   import { betCalculate, calculateTotal, canPlaceBet, checkWinState, dealerShouldDraw} from './scripts/gameLogic';
   import DealerHand from './components/DealerHand.vue';
   import PlayerHand from './components/PlayerHand.vue';
@@ -67,10 +67,11 @@
       return
     }
 
-
     // Player draws 1 card
     await hit(game.value.id)
     game.value = await updateGameState(game.value.id)
+    playersHand.value = game.value.playerHand
+    console.log(game.value.playerHand)
 
     // Check if we've busted, dealer doesn't draw
     if (calculateTotal(playersHand.value) > 21) {

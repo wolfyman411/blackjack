@@ -15,17 +15,6 @@ export async function getPlayer() {
     return player
 }
 
-export async function getDeck() {
-    console.log("Getting new deck...")
-    try {
-        const response = await axios.get(`${URL}/new/games/`)
-        return response.data.deck_id
-    }
-    catch (error) {
-        console.error(error)
-    }
-}
-
 export async function setupGame(playerId:string,bet:number) {
     console.log("Starting new game...")
     const response = await axios.post(`${URL}/games`, {
@@ -61,14 +50,9 @@ export async function updateGameState(id:string) {
         playerId:response.data.game.playerId,
         bet:response.data.game.bet,
     }
+    gameState.playerHand = fixCardImages(gameState.playerHand)
+    gameState.dealerHand = fixCardImages(gameState.dealerHand)
     return gameState
-}
-
-export function shuffleDeck(id:string) {
-    axios.get(`${URL}/${id}/shuffle/`)
-    .catch((error) => {
-        console.error(error)
-    })
 }
 
 export async function hit(id:string) {
