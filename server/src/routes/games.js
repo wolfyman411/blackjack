@@ -58,7 +58,7 @@ export function gamesRouter(drawCard) {
         var obfuscatedCard = {
             value:"???",
             suit:"???",
-            image:"images/cards/back"
+            image:"/static/cards/CARD_BACK.png"
         }
         obfuscatedGame.dealerHand[1] = obfuscatedCard
 
@@ -178,7 +178,7 @@ export function gamesRouter(drawCard) {
             var obfuscatedCard = {
                 value:"???",
                 suit:"???",
-                image:"images/cards/back"
+                image:"/static/cards/CARD_BACK.png"
             }
             obfuscatedGame.dealerHand[1] = obfuscatedCard
         }
@@ -190,3 +190,6 @@ export function gamesRouter(drawCard) {
 
     return router
 }
+
+//http://127.0.0.1:3000/static/cards/back.png
+//http://127.0.0.1:3000/static/cards/7_DIAMONDS.png

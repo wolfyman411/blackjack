@@ -1,5 +1,3 @@
-https://deckofcardsapi.com/
-
 <script setup lang="ts">
   
   import speakerIcon from '@/assets/Speaker_Icon.svg'

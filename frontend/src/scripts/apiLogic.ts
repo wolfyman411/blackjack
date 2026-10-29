@@ -1,7 +1,8 @@
 import axios from 'axios';
-import type { Gamestate, Player } from './types';
+import type { Card, Gamestate, Player } from './types';
 
-const URL = "http://127.0.0.1:3000/api"
+const URL = import.meta.env.VITE_API_URL
+const CARD_URL = URL.replace('/api','')
 
 export async function getPlayer() {
     console.log("Getting new player...")
@@ -41,6 +42,8 @@ export async function setupGame(playerId:string,bet:number) {
         playerId:response.data.game.playerId,
         bet:response.data.game.bet,
     }
+    gameState.playerHand = fixCardImages(gameState.playerHand)
+    gameState.dealerHand = fixCardImages(gameState.dealerHand)
     return gameState
 }
 
@@ -88,4 +91,13 @@ export async function updatePlayer(id:string) {
         bankroll:response.data.player.bankroll
     }
     return player
+}
+
+// Not an API function, but used with API functions to ensure that images display correctly in the game
+function fixCardImages(deck:Card[]) {
+    for (var card of deck) {
+        // Special case if the card is hidden
+        card.image = CARD_URL + card.image
+    }
+    return deck
 }
