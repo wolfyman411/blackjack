@@ -24,6 +24,8 @@ export function gamesRouter(drawCard) {
             deck_id: deck_id,
             playerHand:[],
             dealerHand:[],
+            playerTotal:"",
+            dealerTotal:"",
             playerTurn:true
         }
 
@@ -49,6 +51,11 @@ export function gamesRouter(drawCard) {
         var drawnCards = drawCard(deck_id,4)
         newGame.playerHand = [drawnCards[0],drawnCards[1]]
         newGame.dealerHand = [drawnCards[2],drawnCards[3]]
+
+        var dealerArray = [newGame.dealerHand[0]]
+
+        newGame.playerTotal = calculateTotal(newGame.playerHand)
+        newGame.dealerTotal = calculateTotal(dealerArray) + " + ?"
 
         var obfuscatedGame = {
             ...newGame,

@@ -3,6 +3,7 @@ import { calculateTotal} from '@/scripts/gameLogic';
 import type { Card } from '@/scripts/types';
 defineProps<{
   playersHand: Card[]
+  playerTotal:string
   playerMessage:string
 }>()
 </script>
@@ -20,7 +21,7 @@ defineProps<{
             <img class="card" v-for="card in playersHand" :key="card.image" :src="card.image" :alt="`${card.value} of ${card.suit}`" />
         </div>
         <div class="player-display">
-            <h4>Player Total: {{ calculateTotal(playersHand) }}</h4>
+            <h4>Player Total: {{ playerTotal }}</h4>
         </div>
     </div>
 </template> 

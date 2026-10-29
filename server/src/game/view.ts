@@ -5,6 +5,8 @@ export interface Gamestate {
     deck_id:string,
     playerHand:Card[],
     dealerHand:Card[],
+    playerTotal:string,
+    dealerTotal:string,
     playerTurn:boolean,
     gameResult:{},
     playerId:string|null,

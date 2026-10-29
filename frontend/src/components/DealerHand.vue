@@ -5,7 +5,7 @@
     defineProps<{
         dealersHand: Card[]
         dealerMessage:string
-        endGame:boolean
+        dealerTotal:string
     }>()
 </script>
 
@@ -29,7 +29,7 @@
         />
         </div>
         <h4>
-            Dealer Total: {{endGame ? calculateTotal(dealersHand) : calculateTotal(dealersHand.filter(card => !card.hidden))+" + ?" }}
+            Dealer Total: {{dealerTotal}}
         </h4>
     </div>
 </template>

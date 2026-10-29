@@ -10,6 +10,8 @@ export interface Gamestate {
     id:string,
     playerHand:Card[],
     dealerHand:Card[],
+    playerTotal:string,
+    dealerTotal:string,
     gameResult:{
         playerMessage:string,
         dealerMessage:string,

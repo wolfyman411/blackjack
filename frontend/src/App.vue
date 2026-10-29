@@ -185,8 +185,8 @@
   <h1>Blackjack</h1>
   <h2 class="gameMessage">{{ gameMessage }}</h2>
   <div class="players-wrapper">
-    <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :endGame="endGame"/>
-    <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage"/>
+    <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="game?.dealerTotal || ''"/>
+    <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal || ''"/>
   </div>
 
   <div class="game-controls">
