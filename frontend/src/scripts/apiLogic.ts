@@ -8,8 +8,6 @@ export async function getPlayer() {
     console.log("Getting new player...")
     const response = await axios.post(`${URL}/players`)
 
-    console.log(response.data.player)
-
     const player:Player = {
         id:response.data.player.id,
         bankroll:response.data.player.bankroll
@@ -34,6 +32,7 @@ export async function setupGame(playerId:string,bet:number) {
         playerId:playerId,
         bet:bet
     })
+    console.log(response.data.game.id)
     const gameState:Gamestate = {
         id:response.data.game.id,
         playerHand:response.data.game.playerHand,
@@ -72,18 +71,13 @@ export function shuffleDeck(id:string) {
     })
 }
 
-export async function drawCards(id:string) {
-    const response = await axios.get(`${URL}/${id}/hit`)
-    return response.data.cards
-}
-
 export async function hit(id:string) {
-    const response = await axios.post(`${URL}/${id}/hit`)
+    const response = await axios.post(`${URL}/games/${id}/hit`)
     return response.data.result
 }
 
 export async function standCall(id:string) {
-    const response = await axios.post(`${URL}/${id}/stand`)
+    const response = await axios.post(`${URL}/games/${id}/stand`)
     return response.data.result
 }
 

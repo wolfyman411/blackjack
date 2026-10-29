@@ -189,6 +189,11 @@ export function gamesRouter(drawCard) {
             }
             obfuscatedGame.dealerHand[1] = obfuscatedCard
         }
+        else {
+            obfuscatedGame.dealerTotal = calculateTotal(obfuscatedGame.dealerHand)
+        }
+
+        obfuscatedGame.playerTotal = calculateTotal(obfuscatedGame.playerHand)
 
         res.status(200).json({
             game: obfuscatedGame
