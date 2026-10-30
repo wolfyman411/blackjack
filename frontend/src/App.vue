@@ -11,7 +11,7 @@
   import GameControls from './components/GameControls.vue';
   import type { Card, Gamestate, Player } from './scripts/types.ts';
   import BetControls from './components/BetControls.vue';
-import { canPlaceBet } from './scripts/gameLogic.ts';
+import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
   
   const game = ref(<Gamestate|null>(null))
   const player = ref(<Player|null>(null))
@@ -92,6 +92,7 @@ import { canPlaceBet } from './scripts/gameLogic.ts';
     game.value = await updateGameState(game.value.id)
 
     // Reveal the hidden card.
+    const tempHand = game.value.dealerHand.slice(0,2)
     if (dealersHand.value[1]) {
       playCardFlipSound()
       dealersHand.value[1].flipping = true
@@ -100,7 +101,7 @@ import { canPlaceBet } from './scripts/gameLogic.ts';
       if (game.value.dealerHand[1]) {
         dealersHand.value[1].image = game.value.dealerHand[1].image
       }
-      dealerTotal.value = game.value.dealerTotal
+      dealerTotal.value = calculateTotal(tempHand).toString()
       await new Promise(resolve => setTimeout(resolve, 250))
     }
 
@@ -109,7 +110,9 @@ import { canPlaceBet } from './scripts/gameLogic.ts';
     for (const card of newHand) {
       playCardFlipSound()
       dealersHand.value.push(card)
-      await new Promise(resolve => setTimeout(resolve, 250))
+      tempHand.push(card)
+      dealerTotal.value = calculateTotal(tempHand).toString()
+      await new Promise(resolve => setTimeout(resolve, 500))
     }
 
     // Now check the hands

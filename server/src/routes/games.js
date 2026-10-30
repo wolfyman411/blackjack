@@ -138,7 +138,7 @@ export function gamesRouter(drawCard) {
         var dealerTotal = calculateTotal(currentGame.dealerHand)
         const bet = currentGame.bet
 
-        while (dealerShouldDraw(dealerTotal) && dealerTotal < playerTotal) {
+        while (dealerShouldDraw(dealerTotal) && dealerTotal <= playerTotal) {
             var drawnCards = drawCard(currentGame.deck_id,1)
             currentGame.dealerHand.push(drawnCards[0])
             dealerTotal = calculateTotal(currentGame.dealerHand)
@@ -205,6 +205,3 @@ export function gamesRouter(drawCard) {
 
     return router
 }
-
-//http://127.0.0.1:3000/static/cards/back.png
-//http://127.0.0.1:3000/static/cards/7_DIAMONDS.png

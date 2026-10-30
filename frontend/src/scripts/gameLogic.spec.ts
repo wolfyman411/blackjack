@@ -1,79 +1,79 @@
 import {describe, expect, test} from 'vitest'
 import type { Card } from './types'
-import {canPlaceBet} from './gameLogic'
+import {calculateTotal, canPlaceBet} from './gameLogic'
 
-// describe('Deck score testing',() => {
-//     test("KING + 5 = 15", () => {
-//             var testCard1:Card = {
-//             value:"KING",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testCard2:Card = {
-//             value:"5",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testHand:Card[] = [testCard1,testCard2]
-//         expect(calculateTotal(testHand)).toBe(15)
-//     })
-//     test("ACE + 9 = 20", () => {
-//             var testCard1:Card = {
-//             value:"ACE",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testCard2:Card = {
-//             value:"9",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testHand:Card[] = [testCard1,testCard2]
-//         expect(calculateTotal(testHand)).toBe(20)
-//     })
-//     test("ACE + ACE = 12", () => {
-//             var testCard1:Card = {
-//             value:"ACE",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testCard2:Card = {
-//             value:"ACE",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testHand:Card[] = [testCard1,testCard2]
-//         expect(calculateTotal(testHand)).toBe(12)
-//     })
-//     test("ACE + 9 + 5 = 15", () => {
-//             var testCard1:Card = {
-//             value:"ACE",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testCard2:Card = {
-//             value:"9",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testCard3:Card = {
-//             value:"5",
-//             suit:"Hearts",
-//             image:"",
-//             hidden:false
-//         }
-//         var testHand:Card[] = [testCard1,testCard2,testCard3]
-//         expect(calculateTotal(testHand)).toBe(15)
-//     })
-// })
+describe('Deck score testing',() => {
+    test("KING + 5 = 15", () => {
+            var testCard1:Card = {
+            value:"KING",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testCard2:Card = {
+            value:"5",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testHand:Card[] = [testCard1,testCard2]
+        expect(calculateTotal(testHand)).toBe(15)
+    })
+    test("ACE + 9 = 20", () => {
+            var testCard1:Card = {
+            value:"ACE",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testCard2:Card = {
+            value:"9",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testHand:Card[] = [testCard1,testCard2]
+        expect(calculateTotal(testHand)).toBe(20)
+    })
+    test("ACE + ACE = 12", () => {
+            var testCard1:Card = {
+            value:"ACE",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testCard2:Card = {
+            value:"ACE",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testHand:Card[] = [testCard1,testCard2]
+        expect(calculateTotal(testHand)).toBe(12)
+    })
+    test("ACE + 9 + 5 = 15", () => {
+            var testCard1:Card = {
+            value:"ACE",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testCard2:Card = {
+            value:"9",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testCard3:Card = {
+            value:"5",
+            suit:"Hearts",
+            image:"",
+            hidden:false
+        }
+        var testHand:Card[] = [testCard1,testCard2,testCard3]
+        expect(calculateTotal(testHand)).toBe(15)
+    })
+})
 
 // describe('Bust testing',() => {
 //     test("22 Busts", () => {

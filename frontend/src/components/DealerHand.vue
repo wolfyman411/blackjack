@@ -21,9 +21,9 @@
         <img
             class="card" 
             v-for="(card,index) in dealersHand" 
-            :class="{ flip: card.flipping }"
-            :key="card.image" 
-            :src="`${card.hidden ? 'https://deckofcardsapi.com/static/img/back.png' : card.image}`" 
+            :class="{ flip: card.flipping}"
+            :key="card.suit+card.value" 
+            :src="`${card.image}`" 
             :alt="`${card.value} of ${card.suit}`" 
         />
         </div>
