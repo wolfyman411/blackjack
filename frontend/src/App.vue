@@ -6,12 +6,12 @@
 
   import { ref } from 'vue'
   import { getPlayer, hit, setupGame, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
-  import { betCalculate, calculateTotal, canPlaceBet, checkWinState, dealerShouldDraw} from './scripts/gameLogic';
   import DealerHand from './components/DealerHand.vue';
   import PlayerHand from './components/PlayerHand.vue';
   import GameControls from './components/GameControls.vue';
   import type { Card, Gamestate, Player } from './scripts/types.ts';
   import BetControls from './components/BetControls.vue';
+import { canPlaceBet } from './scripts/gameLogic.ts';
   
   const game = ref(<Gamestate|null>(null))
   const player = ref(<Player|null>(null))
@@ -21,6 +21,7 @@
   const gameMessage = ref('Start the game by pressing the "Start Game" button.')
   const dealersHand = ref<Card[]>([])
   const playersHand = ref<Card[]>([])
+  const dealerTotal = ref('')
   const playerMessage = ref('')
   const dealerMessage = ref('')
   const cardFlipPlayer = ref<HTMLAudioElement | null>(null)
@@ -55,39 +56,38 @@
     // Next draw two cards for the dealer and the player
     dealersHand.value = game.value.dealerHand
     playersHand.value = game.value.playerHand
+    dealerTotal.value = game.value.dealerTotal
     playCardFlipSound()
     console.log("Game started.")
   }
 
   async function getCard() {
 
-    playCardFlipSound()
-
     if (!game.value) {
       return
     }
+
+    playCardFlipSound()
 
     // Player draws 1 card
     await hit(game.value.id)
     game.value = await updateGameState(game.value.id)
     playersHand.value = game.value.playerHand
-    console.log(game.value.playerHand)
 
-    // Check if we've busted, dealer doesn't draw
-    if (calculateTotal(playersHand.value) > 21) {
-      stand(false)
+    // Check if the game has ended
+    if (game.value.gameResult) {
+      stand()
     }
   }
 
-  async function stand(dealerDraw=true) {
+  async function stand() {
 
     if (!game.value) {
       return
     }
 
+    // Handle end game event
     endGame.value = true
-    console.log("Checking end status...")
-    // After the player stands we check dealer logic
     standCall(game.value.id)
     game.value = await updateGameState(game.value.id)
 
@@ -97,32 +97,20 @@
       dealersHand.value[1].flipping = true
       await new Promise(resolve => setTimeout(resolve, 250))
       dealersHand.value[1].hidden = false
+      if (game.value.dealerHand[1]) {
+        dealersHand.value[1].image = game.value.dealerHand[1].image
+      }
+      dealerTotal.value = game.value.dealerTotal
       await new Promise(resolve => setTimeout(resolve, 250))
     }
 
-    // Draw until the dealer has 17 or more (don't draw if false)
-    // while (dealerShouldDraw(dealerTotal) && dealerDraw) {
-    //   try {
-    //     const cards = await drawCards(deckId.value,1)
-    //     var newCard: Card = {
-    //       value: cards[0].value,
-    //       suit: cards[0].suit,
-    //       image: cards[0].image,
-    //       hidden: false
-    //     }
-    //     dealersHand.value.push(newCard)
-    //     console.log("Dealer drew a card.")
-    //     dealerTotal = calculateTotal(dealersHand.value)
-
-    //     playCardFlipSound()
-
-    //     await new Promise(resolve => setTimeout(resolve, 500)) // Wait before drawing again
-    //   }
-    //   catch(error) {
-    //     console.error(error)
-    //     return
-    //   }
-    // }
+    // Now draw the rest of the dealer's cards
+    const newHand = game.value.dealerHand.slice(2)
+    for (const card of newHand) {
+      playCardFlipSound()
+      dealersHand.value.push(card)
+      await new Promise(resolve => setTimeout(resolve, 250))
+    }
 
     // Now check the hands
     await new Promise(resolve => setTimeout(resolve, 500)) // Wait before drawing again
@@ -132,6 +120,9 @@
     betLogic()
     disableBet.value = false
     playChipSound()
+    playerBet.value = 0
+
+    // Reset game
     gameMessage.value += " Press 'Start Game' to play again."
     enableStart.value = true
   }
@@ -139,6 +130,8 @@
   async function betLogic() {
     if (!player.value) return
     player.value = await updatePlayer(player.value.id)
+    playerMoney.value = Number(player.value.bankroll)
+    console.log(player.value)
   }
 
   function playCardFlipSound() {
@@ -164,8 +157,8 @@
     }
   }
 
+  // Handle functionality
   function updateBet(amount:number) {
-
     if (!canPlaceBet(playerMoney.value,playerBet.value,amount)) {
       return
     }
@@ -186,7 +179,7 @@
   <h1>Blackjack</h1>
   <h2 class="gameMessage">{{ gameMessage }}</h2>
   <div class="players-wrapper">
-    <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="game?.dealerTotal || ''"/>
+    <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
     <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal || ''"/>
   </div>
 

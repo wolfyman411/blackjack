@@ -90,6 +90,8 @@ export function gamesRouter(drawCard) {
             throw ApiError('GAME_ENDED', 409, 'Game already ended.');
         }
 
+        const bet = currentGame.bet
+
         // Draw one card
         var drawnCards = drawCard(currentGame.deck_id,1)
         currentGame.playerHand.push(drawnCards[0])
@@ -97,7 +99,7 @@ export function gamesRouter(drawCard) {
         // Check if bust
         var playerTotal = calculateTotal(currentGame.playerHand)
         if (playerTotal > 21) {
-            currentGame.gameResult = checkWinState(calculateTotal(currentGame.dealerHand),playerTotal,1)
+            currentGame.gameResult = checkWinState(calculateTotal(currentGame.dealerHand),playerTotal,bet)
             const currentPlayer = await getPlayerId(currentGame.playerId)
 
             var dealerTotal = calculateTotal(currentGame.playerHand)
@@ -132,17 +134,18 @@ export function gamesRouter(drawCard) {
         }
 
         // Draw for the dealer
-        while (dealerShouldDraw(calculateTotal(currentGame.dealerHand))) {
-            var drawnCards = drawCard(currentGame.deck_id,1)
-            currentGame.dealerHand.push(drawnCards[0])
-        }
-
-        // Check game end
         var playerTotal = calculateTotal(currentGame.playerHand)
         var dealerTotal = calculateTotal(currentGame.dealerHand)
+        const bet = currentGame.bet
+
+        while (dealerShouldDraw(dealerTotal) && dealerTotal < playerTotal) {
+            var drawnCards = drawCard(currentGame.deck_id,1)
+            currentGame.dealerHand.push(drawnCards[0])
+            dealerTotal = calculateTotal(currentGame.dealerHand)
+        }
         
         // Get the game result
-        currentGame.gameResult = checkWinState(dealerTotal,playerTotal,1)
+        currentGame.gameResult = checkWinState(dealerTotal,playerTotal,bet)
 
         const currentPlayer = await getPlayerId(currentGame.playerId)
         

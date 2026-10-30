@@ -1,5 +1,4 @@
 <script setup lang="ts">
-    import { calculateTotal} from '@/scripts/gameLogic';
     import type { Card } from '@/scripts/types';
     
     defineProps<{

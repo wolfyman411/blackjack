@@ -69,8 +69,8 @@ export async function updatePlayer(id:string) {
     const response = await axios.get(`${URL}/players/${id}`)
 
     const player:Player = {
-        id:response.data.player.id,
-        bankroll:response.data.player.bankroll
+        id:id,
+        bankroll:response.data.bankroll
     }
     return player
 }
