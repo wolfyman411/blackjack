@@ -65,6 +65,10 @@ export async function standCall(id:string) {
     return response.data.result
 }
 
+export async function reload(id:string) {
+    const response = await axios.post(`${URL}/players/${id}/reload`)
+}
+
 export async function updatePlayer(id:string) {
     const response = await axios.get(`${URL}/players/${id}`)
 

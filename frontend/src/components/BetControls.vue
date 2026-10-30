@@ -8,7 +8,7 @@
 
     const emit = defineEmits<{
         (e: 'updateBet', amount: number): void
-        (e: 'updateMoney', amount: number): void
+        (e: 'callReload'): void
         (e: 'stand'): void
         (e: 'startGame'): void
         (e: 'getCard'): void
@@ -18,8 +18,8 @@
     emit('updateBet', amount)
     }
 
-    function updateMoney(amount: number) {
-    emit('updateMoney', amount)
+    function callReload() {
+    emit('callReload')
     }
 
 </script>
@@ -30,7 +30,7 @@
         <div class="bet-controls">
         <button @click="updateBet(Math.min(50,playerMoney))" :disabled="disableBet">+{{Math.min(50,playerMoney)}}</button>
         <button @click="updateBet(Math.max(-50,-playerBet))" :disabled="disableBet">-{{Math.max(-50,-playerBet)}}</button>
-        <button @click="updateMoney(1000)" :disabled="disableBet" v-if="playerMessage && playerMoney === 0 && playerBet === 0">Get a Loan</button>
+        <button @click="callReload()" :disabled="disableBet" v-if="playerMessage && playerMoney === 0 && playerBet === 0">Get a Loan</button>
         </div>
     </div>
 </template> 

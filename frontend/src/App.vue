@@ -5,13 +5,16 @@
 
 
   import { ref } from 'vue'
-  import { getPlayer, hit, setupGame, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
+  import { getPlayer, hit, reload, setupGame, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
   import DealerHand from './components/DealerHand.vue';
   import PlayerHand from './components/PlayerHand.vue';
   import GameControls from './components/GameControls.vue';
   import type { Card, Gamestate, Player } from './scripts/types.ts';
   import BetControls from './components/BetControls.vue';
-import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
+  import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
+
+  // TODO:
+  // Add error handling in the event that a value fails
   
   const game = ref(<Gamestate|null>(null))
   const player = ref(<Player|null>(null))
@@ -52,6 +55,15 @@ import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
     console.log("Starting new game...")
     // First start a game
     game.value = await setupGame(player.value.id,playerBet.value)
+
+    // In the event of game failure, stop here
+    if (!game.value) {
+      enableStart.value = false
+      disableBet.value = false
+      gameMessage.value = "An issue occurred, please refresh the page!"
+      console.log("An error occurred starting the game!")
+      return
+    }
 
     // Next draw two cards for the dealer and the player
     dealersHand.value = game.value.dealerHand
@@ -175,6 +187,13 @@ import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
   function updateMoney(amount:number) {
     playerMoney.value += amount
   }
+
+  async function callReload() {
+    if (!player.value) return
+    reload(player.value.id)
+    player.value = await updatePlayer(player.value.id)
+    playerMoney.value = Number(player.value.bankroll)
+  }
   
 </script>
 
@@ -183,7 +202,7 @@ import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
   <h2 class="gameMessage">{{ gameMessage }}</h2>
   <div class="players-wrapper">
     <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
-    <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal || ''"/>
+    <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal.toString() || ''"/>
   </div>
 
   <div class="game-controls">
@@ -193,7 +212,7 @@ import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
       :disableBet="disableBet" 
       :playerMessage="playerMessage" 
       @updateBet="updateBet"
-      @updateMoney="updateMoney"
+      @callReload="callReload"
     />
     <GameControls 
       :enableStart="enableStart" 
