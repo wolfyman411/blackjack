@@ -1,10 +1,10 @@
-CREATE TABLE players (
+CREATE TABLE IF NOT EXISTS players (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   bankroll    integer NOT NULL DEFAULT 1000,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE games (
+CREATE TABLE IF NOT EXISTS games (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id       uuid NOT NULL REFERENCES players(id),
   bet             integer NOT NULL,
