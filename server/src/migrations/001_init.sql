@@ -15,13 +15,3 @@ CREATE TABLE games (
   dealer_total    integer NOT NULL,
   settled_at      timestamptz NOT NULL DEFAULT now()
 );
-
--- games played, wins, losses and win rate for one player
-SELECT count(*)                                              AS games_played,
-       count(*) FILTER (WHERE outcome = 'player')            AS wins,
-       count(*) FILTER (WHERE outcome = 'dealer')            AS losses,
-       round(100.0 * count(*) FILTER (WHERE outcome = 'player') / nullif(count(*), 0), 1) AS win_rate_pct
-FROM games WHERE player_id = $1;
-
--- current bankroll
-SELECT bankroll FROM players WHERE id = $1;

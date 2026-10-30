@@ -22,7 +22,12 @@ else {
   };
 }
 
-export const db = new Pool({poolConfig});
+console.log("--- DB.TS EXECUTION ---");
+console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
+console.log("Type of DB_PASSWORD:", typeof process.env.DB_PASSWORD);
+console.log("DB_CONNECTION_STRING:", process.env.DB_CONNECTION_STRING);
+
+export const db = new Pool(poolConfig);
 
 db.on('connect', () => {
   console.log("Connected to database")
