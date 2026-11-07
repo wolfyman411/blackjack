@@ -51,9 +51,10 @@ export function shuffleDeck(id:string) {
     // Combine all cards from discard and drawpile
     var allCards = [...deck.discardPile, ...deck.drawPile]
     var shuffledCards = [...allCards]
+
     for (let i = shuffledCards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffledCards[i], shuffledCards[j]] = [shuffledCards[j], shuffledCards[i]];
+        [shuffledCards[i], shuffledCards[j]] = [shuffledCards[j]!, shuffledCards[i]!];
     }
 
     deck.discardPile = []
@@ -74,6 +75,7 @@ export function drawCard(id:string, amount:number) {
         if (deck.drawPile.length <= 0) {
             break
         }
+        if (!deck.drawPile[0]) return
         drawnCards.push(deck.drawPile[0])
         deck.discardPile.push(deck.drawPile[0])
         deck.drawPile.shift()

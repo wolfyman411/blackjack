@@ -61,8 +61,13 @@ export async function hit(id:string) {
 }
 
 export async function standCall(id:string) {
-    const response = await axios.post(`${URL}/games/${id}/stand`)
-    return response.data.result
+    try {
+        const response = await axios.post(`${URL}/games/${id}/stand`)
+        return response.data.result
+    }
+    catch (e) {
+        return e
+    }
 }
 
 export async function reload(id:string) {
