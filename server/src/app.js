@@ -4,6 +4,7 @@ import { drawCard } from './game/deckClient.ts';
 import {gamesRouter} from './routes/games.js'
 import {playerRouter} from './routes/players.js'
 import path from 'path'
+import { appRouter } from './routes/app.js';
 
 export function createApp(drawCardFn = drawCard) {
   const app = express()
@@ -12,6 +13,7 @@ export function createApp(drawCardFn = drawCard) {
   app.use('/static',express.static(path.join(process.cwd(),'public')))
   app.use('/api/games', gamesRouter(drawCardFn))
   app.use('/api/players',playerRouter())
+  app.use('/api/',appRouter())
   app.use((err,req,res,next) => {
     const status = err.status ?? 500;
     const code = err.code ?? 'INTERNAL_ERROR';
