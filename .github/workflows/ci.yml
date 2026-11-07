@@ -49,7 +49,7 @@ jobs:
                 image: postgres:16
                 env:
                     POSTGRES_USER: test
-                    POSGRES_PASSWORD: test
+                    POSTGRES_PASSWORD: test
                     POSTGRES_DB: blackjack_test
                 ports:
                     -
