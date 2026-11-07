@@ -100,7 +100,7 @@
 
     // Handle end game event
     endGame.value = true
-    standCall(game.value.id)
+    await standCall(game.value.id)
     game.value = await updateGameState(game.value.id)
 
     // Reveal the hidden card.

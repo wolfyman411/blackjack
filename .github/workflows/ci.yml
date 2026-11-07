@@ -1,0 +1,97 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+
+permissions:
+    contents: read
+
+jobs:
+    frontend:
+        name: Frontend (type-check + vitest)
+        runs-on: ubuntu-latest
+
+        steps:
+            -
+                name: Checkout repo
+                uses: actions/checkout@v4
+
+            - 
+                name: Setup Node.js 22
+                uses: actions/setup-node@v4
+                with:
+                    node-version: "22"
+                    cache: "npm"
+                    cache-dependency-path: "frontend/package-lock.json"
+
+            -
+                name: Install dependencies
+                working-directory: frontend
+                run: npm ci
+
+            -
+                name: Type check frontend
+                working-directory: frontend
+                run: npx tsc --noEmit
+
+            -
+                name: Run frontend Vitest
+                working-directory: frontend
+                run: npx vitest run
+    
+    backend:
+        name: Backend (type-check + Postgres 16)
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: test
+                    POSGRES_PASSWORD: test
+                    POSTGRES_DB: blackjack_test
+                ports:
+                    -
+                        5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        env:
+            DB_CONNECTION_STRING: postgresql://test:test@localhost:5432/blackjack_test
+
+        steps:
+            -
+                name: Checkout repo
+                uses: actions/checkout@v4
+
+            -
+                name: Setup Node.js 22
+                uses: actions/setup-node@v4
+                with:
+                    node-version: "22"
+                    cache: "npm"
+                    cache-dependency-path: "server/package-lock.json"
+                    
+            -
+                name: Install dependencies
+                working-directory: server
+                run: npm ci
+            
+            - 
+                name: Run database migrations
+                working-directory: server
+                run: npm run migrate
+
+            -
+                name: Type check backend
+                working-directory: server
+                run: npx tsc --noEmit
+
+            -
+                name: Run backend tests
+                working-directory: server
+                run: npm test
