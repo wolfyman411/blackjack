@@ -1,4 +1,4 @@
-import type { Card } from "./deckClient";
+import type { Card } from "./deckClient.js";
 
 export function calculateTotal(hand: Card[]) : number {
     let total = 0;
