@@ -82,6 +82,7 @@ To run tests, run `npm run test` in either the frontend or backend folder.
 **Frontend**
   - Deck Score Check: Checks if face cards, aces, and value cards are added correctly using the frontend card total function.
   - Bet Check: Ensures the player cannot withdraw or place bets with money they don't have.
+  - Bet Controls: Makes sure that all buttons are disabled when a round is active.
 
 **Backend**
 These tests use a fixed deck to ensure that the results are consistent and certain outcomes can be tested. In addition the deck is reset and all active games, ended games, and players are cleared after each test.
