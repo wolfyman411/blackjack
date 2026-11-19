@@ -2,10 +2,10 @@
   
   import speakerIcon from '@/assets/Speaker_Icon.svg'
   import speakerIconMute from '@/assets/Speaker_Icon_no.svg'
+  import spinnerIcon from '@/assets/spinner.png'
 
-
-  import { ref } from 'vue'
-  import { getPlayer, hit, reload, setupGame, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
+  import { onMounted, onUnmounted, ref } from 'vue'
+  import { getApiHealth, getPlayer, hit, reload, setupGame, standCall, updateGameState, updatePlayer } from './scripts/apiLogic';
   import DealerHand from './components/DealerHand.vue';
   import PlayerHand from './components/PlayerHand.vue';
   import GameControls from './components/GameControls.vue';
@@ -33,12 +33,48 @@
   const playerBet = ref(0)
   const disableBet = ref(false)
   const muteSounds = ref(false)
+  const apiOnline = ref(false)
+
+  let intervalId:number|null = null
+  
+  onMounted(() => {
+    intervalId = setInterval(checkBackend,5000)
+  })
+
+  onUnmounted(() => {
+    clearInterval(intervalId || 0)
+  })
 
   async function init() {
-    player.value = await getPlayer()
+    // Check API
+    gameMessage.value = "Waiting for server to respond."
+    apiOnline.value = await getApiHealth()
+
+    if (apiOnline.value) {
+      player.value = await getPlayer()
+      playerMoney.value = player.value.bankroll
+    }
   }
 
-  init()
+  async function checkBackend() {
+    // Check API
+    apiOnline.value = await getApiHealth()
+
+    // If server has gone down, force end the game
+    if (!apiOnline.value) {
+      dealersHand.value = []
+      playersHand.value = []
+      dealerTotal.value = ""
+      player.value = null
+      game.value = null
+      playerMessage.value = ""
+      dealerMessage.value = ""
+      endGameValues()
+    }
+    else if (!player.value) {
+      init()
+    }
+  }
 
   async function startGame() {
 
@@ -133,11 +169,14 @@
     dealerMessage.value = game.value.gameResult.dealerMessage
     gameMessage.value = game.value.gameResult.gameMessage
     betLogic()
-    disableBet.value = false
     playChipSound()
-    playerBet.value = 0
+    endGameValues()
+  }
 
+  function endGameValues() {
     // Reset game
+    disableBet.value = false
+    playerBet.value = 0
     gameMessage.value += " Press 'Start Game' to play again."
     enableStart.value = true
   }
@@ -200,31 +239,39 @@
 <template>
   <h1>Blackjack</h1>
   <h2 class="gameMessage">{{ gameMessage }}</h2>
-  <div class="players-wrapper">
-    <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
-    <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal.toString() || ''"/>
-  </div>
-
-  <div class="game-controls">
-    <BetControls 
-      :playerMoney="playerMoney" 
-      :playerBet="playerBet" 
-      :disableBet="disableBet" 
-      :playerMessage="playerMessage" 
-      @updateBet="updateBet"
-      @callReload="callReload"
-    />
-    <GameControls 
-      :enableStart="enableStart" 
-      :endGame="endGame" 
-      @stand="stand"
-      @startGame="startGame"
-      @getCard="getCard"
-    />
-    <div>
-      <img @click="muteSounds = !muteSounds" :src="muteSounds ? speakerIconMute : speakerIcon" alt="Speaker icon" class="speaker-icon"/>
+  <template v-if="apiOnline">
+    <div class="players-wrapper">
+      <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
+      <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal.toString() || ''"/>
     </div>
-  </div>
+
+    <div class="game-controls">
+      <BetControls 
+        :playerMoney="playerMoney" 
+        :playerBet="playerBet" 
+        :disableBet="disableBet" 
+        :playerMessage="playerMessage" 
+        @updateBet="updateBet"
+        @callReload="callReload"
+      />
+      <GameControls 
+        :enableStart="enableStart" 
+        :endGame="endGame" 
+        @stand="stand"
+        @startGame="startGame"
+        @getCard="getCard"
+      />
+      <div>
+        <img @click="muteSounds = !muteSounds" :src="muteSounds ? speakerIconMute : speakerIcon" alt="Speaker icon" class="speaker-icon"/>
+      </div>
+    </div>
+  </template>
+  <template v-else>
+    <div class="spinner-container">
+      <h2 class="loading-text">Fetching Server</h2>
+      <img :src="spinnerIcon" :alt="spinnerIcon" class="spinner">
+    </div>
+  </template>
 
   <audio ref="cardFlipPlayer">
     <source src="./assets/sounds/card_flip.mp3" type="audio/mpeg">

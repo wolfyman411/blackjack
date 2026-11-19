@@ -4,6 +4,22 @@ import type { Card, Gamestate, Player } from './types';
 const URL = import.meta.env.VITE_API_URL
 const CARD_URL = URL.replace('/api','')
 
+export async function getApiHealth() {
+    console.log("Checking API health...")
+    try {
+        const response = await axios.get(`${URL}/health`)
+        if (response.data.ok) {
+            return true
+        }
+        else {
+            return false
+        }
+    }
+    catch (e) {
+        return false
+    }
+}
+
 export async function getPlayer() {
     console.log("Getting new player...")
     const response = await axios.post(`${URL}/players`)
