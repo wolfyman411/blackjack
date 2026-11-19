@@ -5,7 +5,7 @@ This repository features 2 different versions of an interactive Blackjack web ap
 
 **Project 2 Link:** https://blackjack-git-nodejs-wolfy411.vercel.app?_vercel_share=9M5MqvEwDNbVwSk9pbGUBewPRZ8A0fg8
 
-It may take a moment for Project 2 to register API calls as the backend takes a bit to start after a time of inactivity.
+It may take a moment for Project 2 to load as the backend takes a bit to start after a time of inactivity.
 
 **Check this link to see if the API is currently running:** https://blackjack-5lhc.onrender.com/api/health
 
