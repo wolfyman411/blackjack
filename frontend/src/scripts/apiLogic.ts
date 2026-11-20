@@ -30,10 +30,16 @@ export async function getPlayer(username:string,password:string) {
             username:username,
             password:password
         })
-        // If we just have a username then the password failed
+        // If we don't have a bankroll, return a bad player so login knows the password failed
         if (!response.data.player.bankroll) {
-            console.log("Password invalid!")
-            return null
+            console.log("invalid password")
+            const bad_player:Player = {
+                id:"bad_player",
+                username:username,
+                password:"",
+                bankroll:-1
+            }
+            return bad_player
         }
     }
     catch (e) {

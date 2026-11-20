@@ -57,7 +57,7 @@ export function playerRouter() {
         }
 
         if (!currentPlayer.bankroll) {
-            res.status(200).json({
+            return res.status(200).json({
                 player: currentPlayer
             })
         }

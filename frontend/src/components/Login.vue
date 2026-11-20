@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import type { Player } from '@/scripts/types';
+import { ref, watchEffect, type Ref } from 'vue';
 
     const playerUsername = ref('')
     const playerPassword = ref('')
     const errorMessage = ref('')
-    const success = ref(false)
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    const props = defineProps<{
+        player:Player|null
+    }>()
 
     const emit = defineEmits<{
         (e: 'accountHandling', username: string, password: string): void
     }>()
+
+    watchEffect(()=> {
+        if (props.player?.id === "bad_player") {
+            errorMessage.value = "Invalid password!"
+        }
+    })
 
     async function accountHandling() {
 
@@ -30,16 +40,19 @@ import { ref } from 'vue';
             return
         }
 
-        success.value = true
-        await setTimeout(() => {
-            emit('accountHandling',playerUsername.value,playerPassword.value)
-        },1500)
+        emit('accountHandling',playerUsername.value,playerPassword.value)
+
+        if (props.player?.id === "bad_player") {
+            console.log(props.player)
+            errorMessage.value = "Invalid password!"
+            return
+        }
     }
 
 </script>
 
 <template>
-    <div :class="{ 'fade-out': success }">
+    <div :class="{ 'fade-out': player?.id !== 'bad_player' && player?.id }">
         <h1>Log In / Sign Up</h1>
         <form class="login-form">
             <h2>Email</h2>

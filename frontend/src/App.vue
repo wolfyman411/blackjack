@@ -56,8 +56,10 @@ import Login from './components/Login.vue';
     // Create player for now
     if (apiOnline.value) {
       player.value = await getPlayer(username,password)
+      if (player.value.id === "bad_player") {
+        return
+      }
       playerMoney.value = player.value?.bankroll || 1000
-
       gameMessage.value = 'Start the game by pressing the "Start Game" button.'
     }
   }
@@ -252,7 +254,7 @@ import Login from './components/Login.vue';
     <img :src="spinnerIcon" :alt="spinnerIcon" class="spinner">
   </div>
   <template v-if="apiOnline">
-    <template v-if="player">
+    <template v-if="player?.id !== 'bad_player' && player">
       <div class="fade-in">
         <div class="players-wrapper">
           <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
@@ -282,7 +284,7 @@ import Login from './components/Login.vue';
       </div>
     </template>
     <template v-else>
-      <Login @accountHandling="accountHandling"/>
+      <Login @accountHandling="accountHandling" :player="player"/>
     </template>
   </template>
 
