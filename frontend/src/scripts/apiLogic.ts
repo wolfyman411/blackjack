@@ -1,11 +1,10 @@
-import axios from 'axios';
+import axios, { type AxiosStatic } from 'axios';
 import type { Card, Gamestate, Player } from './types';
 
 const URL = import.meta.env.VITE_API_URL
 const CARD_URL = URL.replace('/api','')
 
 export async function getApiHealth() {
-    console.log("Checking API health...")
     try {
         const response = await axios.get(`${URL}/health`)
         if (response.data.ok) {
@@ -20,12 +19,35 @@ export async function getApiHealth() {
     }
 }
 
-export async function getPlayer() {
+export async function getPlayer(username:string,password:string) {
     console.log("Getting new player...")
-    const response = await axios.post(`${URL}/players`)
+
+    var response:any = null
+
+    // Check if this player already exists
+    try {
+        response = await axios.post(`${URL}/players/login`, {
+            username:username,
+            password:password
+        })
+        // If we just have a username then the password failed
+        if (!response.data.player.bankroll) {
+            console.log("Password invalid!")
+            return null
+        }
+    }
+    catch (e) {
+        // Otherwise create a new player
+        response = await axios.post(`${URL}/players`, {
+            username:username,
+            password:password
+        })
+    }
 
     const player:Player = {
         id:response.data.player.id,
+        username:response.data.player.user_email,
+        password:response.data.player.user_password,
         bankroll:response.data.player.bankroll
     }
     return player
@@ -90,14 +112,11 @@ export async function reload(id:string) {
     const response = await axios.post(`${URL}/players/${id}/reload`)
 }
 
-export async function updatePlayer(id:string) {
-    const response = await axios.get(`${URL}/players/${id}`)
+export async function updatePlayer(previous_player:Player) {
+    const response = await axios.get(`${URL}/players/${previous_player.id}`)
 
-    const player:Player = {
-        id:id,
-        bankroll:response.data.bankroll
-    }
-    return player
+    previous_player.bankroll = response.data.bankroll
+    return previous_player
 }
 
 // Not an API function, but used with API functions to ensure that images display correctly in the game

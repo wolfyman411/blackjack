@@ -24,5 +24,7 @@ export interface Gamestate {
 
 export interface Player {
     id:string,
+    username:string,
+    password:string,
     bankroll:number
 }

@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS players (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  bankroll    integer NOT NULL DEFAULT 1000,
-  created_at  timestamptz NOT NULL DEFAULT now()
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_email      VARCHAR(255) NOT NULL,
+  user_password   VARCHAR(255) NOT NULL,
+  bankroll        integer NOT NULL DEFAULT 1000,
+  created_at      timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS games (

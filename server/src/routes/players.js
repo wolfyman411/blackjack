@@ -1,7 +1,6 @@
 import express from 'express';
-import { activePlayers } from '../store/memoryStore.ts';
 import { ApiError } from '../errorHandling.ts';
-import { createPlayer, getPlayerId, updateBankRoll } from '../db/playerRepo.ts';
+import { createPlayer, getPlayerId, updateBankRoll, getPlayerUsername } from '../db/playerRepo.ts';
 
 export function playerRouter() {
     const router = express.Router();
@@ -9,8 +8,10 @@ export function playerRouter() {
     //POST METHODS
     // Create a player with a bankroll
     router.post('/', async function(req, res) {
+        const username = req.body?.username;
+        const password = req.body?.password;
 
-        const player = await createPlayer()
+        const player = await createPlayer(username,password)
 
         res.status(201).json({
             message: `Player created: ${player.id}`,
@@ -41,6 +42,28 @@ export function playerRouter() {
         
         res.status(201).json({
             message: `Bankroll refreshed`
+        })
+    })
+
+    // Validate login
+    router.post('/login', async function(req, res) {
+        const username = req.body?.username;
+        const password = req.body?.password;
+
+        const currentPlayer = await getPlayerUsername(username,password)
+        
+        if (!currentPlayer) {
+            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
+        }
+
+        if (!currentPlayer.bankroll) {
+            res.status(200).json({
+                player: currentPlayer
+            })
+        }
+
+        res.status(200).json({
+            player: currentPlayer
         })
     })
 

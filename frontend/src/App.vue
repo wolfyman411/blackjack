@@ -12,6 +12,7 @@
   import type { Card, Gamestate, Player } from './scripts/types.ts';
   import BetControls from './components/BetControls.vue';
   import { calculateTotal, canPlaceBet } from './scripts/gameLogic.ts';
+import Login from './components/Login.vue';
 
   // TODO:
   // Add error handling in the event that a value fails
@@ -21,7 +22,7 @@
 
   const endGame = ref(true)
   const enableStart = ref(true)
-  const gameMessage = ref('Start the game by pressing the "Start Game" button.')
+  const gameMessage = ref(' ')
   const dealersHand = ref<Card[]>([])
   const playersHand = ref<Card[]>([])
   const dealerTotal = ref('')
@@ -47,12 +48,17 @@
 
   async function init() {
     // Check API
-    gameMessage.value = "Waiting for server to respond."
+    gameMessage.value = "Sign up or Log in."
     apiOnline.value = await getApiHealth()
+  }
 
+  async function accountHandling(username:string,password:string) {
+    // Create player for now
     if (apiOnline.value) {
-      player.value = await getPlayer()
-      playerMoney.value = player.value.bankroll
+      player.value = await getPlayer(username,password)
+      playerMoney.value = player.value?.bankroll || 1000
+
+      gameMessage.value = 'Start the game by pressing the "Start Game" button.'
     }
   }
 
@@ -75,6 +81,8 @@
       init()
     }
   }
+
+  checkBackend()
 
   async function startGame() {
 
@@ -183,7 +191,7 @@
 
   async function betLogic() {
     if (!player.value) return
-    player.value = await updatePlayer(player.value.id)
+    player.value = await updatePlayer(player.value)
     playerMoney.value = Number(player.value.bankroll)
     console.log(player.value)
   }
@@ -230,7 +238,7 @@
   async function callReload() {
     if (!player.value) return
     reload(player.value.id)
-    player.value = await updatePlayer(player.value.id)
+    player.value = await updatePlayer(player.value)
     playerMoney.value = Number(player.value.bankroll)
   }
   
@@ -239,38 +247,43 @@
 <template>
   <h1>Blackjack</h1>
   <h2 class="gameMessage">{{ gameMessage }}</h2>
+  <div class="spinner-container" :class="{ 'fade-out': apiOnline }">
+    <h2 class="loading-text">Fetching Server</h2>
+    <img :src="spinnerIcon" :alt="spinnerIcon" class="spinner">
+  </div>
   <template v-if="apiOnline">
-    <div class="players-wrapper">
-      <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
-      <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal.toString() || ''"/>
-    </div>
+    <template v-if="player">
+      <div class="fade-in">
+        <div class="players-wrapper">
+          <DealerHand :dealersHand="dealersHand" :dealerMessage="dealerMessage" :dealerTotal="dealerTotal || ''"/>
+          <PlayerHand :playersHand="playersHand" :playerMessage="playerMessage" :playerTotal="game?.playerTotal.toString() || ''"/>
+        </div>
 
-    <div class="game-controls">
-      <BetControls 
-        :playerMoney="playerMoney" 
-        :playerBet="playerBet" 
-        :disableBet="disableBet" 
-        :playerMessage="playerMessage" 
-        @updateBet="updateBet"
-        @callReload="callReload"
-      />
-      <GameControls 
-        :enableStart="enableStart" 
-        :endGame="endGame" 
-        @stand="stand"
-        @startGame="startGame"
-        @getCard="getCard"
-      />
-      <div>
-        <img @click="muteSounds = !muteSounds" :src="muteSounds ? speakerIconMute : speakerIcon" alt="Speaker icon" class="speaker-icon"/>
+        <div class="game-controls">
+          <BetControls 
+            :playerMoney="playerMoney" 
+            :playerBet="playerBet" 
+            :disableBet="disableBet" 
+            :playerMessage="playerMessage" 
+            @updateBet="updateBet"
+            @callReload="callReload"
+          />
+          <GameControls 
+            :enableStart="enableStart" 
+            :endGame="endGame" 
+            @stand="stand"
+            @startGame="startGame"
+            @getCard="getCard"
+          />
+          <div>
+            <img @click="muteSounds = !muteSounds" :src="muteSounds ? speakerIconMute : speakerIcon" alt="Speaker icon" class="speaker-icon"/>
+          </div>
+        </div>
       </div>
-    </div>
-  </template>
-  <template v-else>
-    <div class="spinner-container">
-      <h2 class="loading-text">Fetching Server</h2>
-      <img :src="spinnerIcon" :alt="spinnerIcon" class="spinner">
-    </div>
+    </template>
+    <template v-else>
+      <Login @accountHandling="accountHandling"/>
+    </template>
   </template>
 
   <audio ref="cardFlipPlayer">
