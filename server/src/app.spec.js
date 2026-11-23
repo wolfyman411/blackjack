@@ -177,6 +177,7 @@ test('DB: Force end a game, ensure data is correct', async () => {
   assert.equal(gameDatabase.outcome, stand_response.body.result.winState)
   assert.equal(gameDatabase.payout, payOut)
   assert.equal(gameDatabase.bankroll_after, Number(player_bankroll_response.body.bankroll))
+  assert.equal(gameDatabase.bankroll_before, Number(player_bankroll_response.body.bankroll-payOut+end_response.body.game.bet))
   assert.equal(gameDatabase.player_total, playerTotal)
   assert.equal(gameDatabase.dealer_total, dealerTotal)
 });
@@ -208,14 +209,31 @@ test('DB: Bankroll updates correctly', async () => {
   assert.equal(1200,postPlayerDatabase.bankroll)
 });
 
-test('TODO: Player account invalid password check', async () => {
-  assert.equal(true,true)
+test('Player account invalid password check', async () => {
+  const player_response = await request(app).post(`/api/players`).send({username:"test@test.com",password:"123456"})
+  const player_response2 = await request(app).post(`/api/players/login`).send({username:"test@test.com",password:"1234567"})
+
+  assert.equal(player_response.status, 201)
+  assert.equal(player_response2.status, 401)
 });
 
-test('TODO: Player account bankroll is persistent', async () => {
-  assert.equal(true,true)
+test('Player account valid password check', async () => {
+  const player_response = await request(app).post(`/api/players`).send({username:"test@test.com",password:"123456"})
+  const player_response2 = await request(app).post(`/api/players/login`).send({username:"test@test.com",password:"123456"})
+
+  assert.equal(player_response.status, 201)
+  assert.equal(player_response2.status, 200)
 });
 
-test('TODO: Player multiple games check', async () => {
-  assert.equal(true,true)
+test('TODO: Player multiple games concurrency check', async () => {
+  const player_response = await request(app).post(`/api/players`).send({username:"test@test.com",password:"123456"})
+  const response = await request(app).post('/api/games').send({playerId:player_response.body.player.id,bet:200})
+  const response2 = await request(app).post('/api/games').send({playerId:player_response.body.player.id,bet:200})
+  const stand_response = await request(app).post(`/api/games/${response.body.game.id}/stand`)
+  const stand_response2 = await request(app).post(`/api/games/${response2.body.game.id}/stand`)
+
+  const player_bankroll_response = await request(app).get(`/api/players/${player_response.body.player.id}`)
+  
+  assert.equal(stand_response.status, 200)
+  assert.equal(stand_response2.status, 403)
 });

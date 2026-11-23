@@ -26,7 +26,7 @@ export function playerRouter() {
         const forced_bankroll = req.body?.bankroll;
         
         if (!currentPlayer) {
-            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
+            throw ApiError(404, 'INVALID_PLAYER', 'No player with that id exists');
         }
 
         var bankroll = currentPlayer.bankroll
@@ -35,10 +35,10 @@ export function playerRouter() {
         }
 
         if (bankroll !== 0) {
-            throw ApiError('INVALID_ACTION', 409, `Player bankroll does not equal 0, is currently: ${bankroll}`);
+            throw ApiError(409,'INVALID_ACTION', `Player bankroll does not equal 0, is currently: ${bankroll}`);
         }
 
-        updateBankRoll(id,1000)
+        updateBankRoll(id,0,1000,true)
         
         res.status(201).json({
             message: `Bankroll refreshed`
@@ -47,17 +47,18 @@ export function playerRouter() {
 
     // Validate login
     router.post('/login', async function(req, res) {
+
         const username = req.body?.username;
         const password = req.body?.password;
 
         const currentPlayer = await getPlayerUsername(username,password)
         
         if (!currentPlayer) {
-            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
+            throw ApiError(404,'INVALID_PLAYER', 'No player with that id exists');
         }
 
         if (!currentPlayer.bankroll) {
-            return res.status(200).json({
+            return res.status(401).json({
                 player: currentPlayer
             })
         }
@@ -74,7 +75,7 @@ export function playerRouter() {
         const currentPlayer = await getPlayerId(id)
         
         if (!currentPlayer) {
-            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
+            throw ApiError(404,'INVALID_PLAYER', 'No player with that id exists');
         }
 
         res.status(200).json({

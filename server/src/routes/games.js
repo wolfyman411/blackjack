@@ -32,15 +32,16 @@ export function gamesRouter(drawCard) {
         // If we have a don't have a bet or player ignore this
         const currentPlayer = await getPlayerId(playerId)
         if (!currentPlayer) {
-            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
+            throw ApiError(404,'INVALID_PLAYER', 'No player with that id exists');
         }
 
         // If bet is greater than our payroll it is invalid or if bet is negative it is invalid
         if (bet > currentPlayer.bankroll || bet < 0) {
-            throw ApiError('INVALID_BET', 400, 'Invalid bet.');
+            throw ApiError(400,'INVALID_BET', 'Invalid bet.');
         }
 
         // If we pass both conditions remove the bet from the player and add it to the game
+        newGame.starting_bankroll = currentPlayer.bankroll
         currentPlayer.bankroll -= bet
         newGame.playerId = currentPlayer.id
         newGame.bet = bet
@@ -82,12 +83,12 @@ export function gamesRouter(drawCard) {
         const currentGame = activeGames.get(id)
 
         if (!currentGame) {
-            throw ApiError('INVALID_GAME', 404, 'No game with that id exists.');
+            throw ApiError(404,'INVALID_GAME', 'No game with that id exists.');
         }
 
         // If the game has already ended, alert
         if (currentGame.gameResult?.gameMessage) {
-            throw ApiError('GAME_ENDED', 409, 'Game already ended.');
+            throw ApiError(409,'GAME_ENDED', 'Game already ended.');
         }
 
         const bet = currentGame.bet
@@ -104,8 +105,8 @@ export function gamesRouter(drawCard) {
 
             var dealerTotal = calculateTotal(currentGame.playerHand)
 
-            await createGame(currentPlayer.id,currentGame.bet,'dealer',0,currentPlayer.bankroll-currentGame.bet,playerTotal,dealerTotal)
-            await updateBankRoll(currentPlayer.id,currentPlayer.bankroll-currentGame.bet)
+            await createGame(currentPlayer.id,currentGame.bet,'dealer',0,currentPlayer.bankroll,currentPlayer.bankroll-currentGame.bet,playerTotal,dealerTotal)
+            await updateBankRoll(currentPlayer.id,currentGame.starting_bankroll,-currentGame.bet)
 
             return res.status(200).json({
                 message: `${currentGame.gameResult.gameMessage}`,
@@ -125,12 +126,12 @@ export function gamesRouter(drawCard) {
         const currentGame = activeGames.get(id)
 
         if (!currentGame) {
-            throw ApiError('INVALID_GAME', 404, 'No game with that id exists.');
+            throw ApiError(404, 'INVALID_GAME', 'No game with that id exists.');
         }
 
         // If the game has already ended, alert
         if (currentGame.gameResult?.gameMessage) {
-            throw ApiError('GAME_ENDED', 409, 'Game already ended.');
+            throw ApiError(409,'GAME_ENDED', 'Game already ended.');
         }
 
         // Draw for the dealer
@@ -151,14 +152,14 @@ export function gamesRouter(drawCard) {
         
         // Issue grabbing the player
         if (!currentPlayer) {
-            throw ApiError('INVALID_PLAYER', 404, 'No player with that id exists');
+            throw ApiError(404,'INVALID_PLAYER', 'No player with that id exists');
         }
 
         var winnings = betCalculate(currentGame.gameResult.winState,currentGame.bet)
-        var bankroll = currentPlayer.bankroll + winnings - currentGame.bet
+        var bankroll = currentPlayer.bankroll
 
-        const dbGame = await createGame(currentPlayer.id,currentGame.bet,currentGame.gameResult.winState,winnings,bankroll,playerTotal,dealerTotal)
-        await updateBankRoll(currentPlayer.id,bankroll)
+        const dbGame = await createGame(currentPlayer.id,currentGame.bet,currentGame.gameResult.winState,winnings,bankroll,bankroll+winnings-currentGame.bet,playerTotal,dealerTotal)
+        await updateBankRoll(currentPlayer.id,currentGame.starting_bankroll,winnings - currentGame.bet)
 
         res.status(200).json({
             message: `${currentGame.gameResult.gameMessage}`,
@@ -175,7 +176,7 @@ export function gamesRouter(drawCard) {
         const currentGame = activeGames.get(id)
 
         if (!currentGame) {
-            throw ApiError('INVALID_GAME', 404, 'No game with that id exists.');
+            throw ApiError(404,'INVALID_GAME', 'No game with that id exists.');
         }
 
         var obfuscatedGame = {

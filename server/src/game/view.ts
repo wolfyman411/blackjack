@@ -11,4 +11,5 @@ export interface Gamestate {
     gameResult:{},
     playerId:string|null,
     bet:number|null,
+    starting_bankroll:number|null,
 }

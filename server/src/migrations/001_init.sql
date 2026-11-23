@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS games (
   bet             integer NOT NULL,
   outcome         text NOT NULL CHECK (outcome IN ('player', 'dealer', 'push')),
   payout          integer NOT NULL,
+  bankroll_before  integer NOT NULL,
   bankroll_after  integer NOT NULL,
   player_total    integer NOT NULL,
   dealer_total    integer NOT NULL,
